@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>theta-script reference</title>
+<meta name="description" content="Complete reference for theta-script builtins, statements, drawing, strategy, data sources and operators.">
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1f24; --muted: #57606a; --line: #d8dee4;
+  --accent: #0969da; --code-bg: #f6f8fa; --k: #cf222e; --s: #0a3069;
+  --c: #6e7781; --n: #0550ae; --o: #8250df;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --fg: #e6edf3; --muted: #8d96a0; --line: #30363d;
+    --accent: #58a6ff; --code-bg: #161b22; --k: #ff7b72; --s: #a5d6ff;
+    --c: #8b949e; --n: #79c0ff; --o: #d2a8ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+nav {
+  position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 0.6rem 1rem; display: flex; gap: 1.1rem; align-items: baseline;
+  flex-wrap: wrap; z-index: 10;
+}
+nav .brand { font-weight: 700; font-family: ui-monospace, monospace; margin-right: 0.5rem; }
+nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+nav a.brand { color: var(--fg); font-size: 1rem; }
+nav a[aria-current] { color: var(--accent); font-weight: 600; }
+nav a:hover { color: var(--accent); }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 1rem 0; }
+h2 { margin-top: 2.2rem; padding-top: 0.4rem; }
+h1 code, h2 code, h3 code { background: none; padding: 0; }
+a { color: var(--accent); }
+p code, li code, td code, th code {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 0.08em 0.32em; font-size: 0.86em;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.9rem 1.1rem; overflow-x: auto; line-height: 1.5;
+}
+pre code { font: 0.86rem/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.k { color: var(--k); } .s { color: var(--s); } .c { color: var(--c); font-style: italic; }
+.n { color: var(--n); } .o { color: var(--o); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid var(--line); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+th { background: var(--code-bg); }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 44rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 2rem 0; }
+.card {
+  border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem;
+  text-decoration: none; color: var(--fg); display: block;
+}
+.card:hover { border-color: var(--accent); }
+.card h3 { margin: 0 0 0.35rem; color: var(--accent); }
+.card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.tags { color: var(--muted); font-size: 0.85rem; font-family: ui-monospace, monospace; }
+.blurb { color: var(--muted); max-width: 44rem; }
+.toc { border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.2rem; margin: 1.4rem 0; column-width: 16rem; }
+.toc a { display: block; text-decoration: none; padding: 0.12rem 0; font-size: 0.93rem; }
+footer {
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem;
+  max-width: 60rem; margin: 0 auto; padding: 1.2rem 1.25rem 2.5rem;
+}
+.refrow th { font-family: ui-monospace, monospace; font-weight: 500; white-space: pre-wrap; width: 42%; }
+</style>
+</head>
+<body>
+<nav><a href="index.html" class="brand">theta-script</a><a href="learn.html">Learn</a><a href="reference.html" aria-current="page">Reference</a><a href="examples.html">Examples</a><a href="spec.html">Spec</a></nav>
+<main>
+
+<h1>Language reference</h1>
+<p class="lede">Every builtin, statement, draw function, source and operator.
+This page is generated from the same data the script editor's docs panel
+renders; a drift test asserts it covers everything the runtime exposes. For
+exact numeric semantics (warmup, NaN handling, locking), see the
+<a href="spec.html">specification</a>.</p>
+<div class="toc"><a href="#functions">Functions</a><a href="#statements-state">Statements &amp; state</a><a href="#drawing">Drawing</a><a href="#strategy-alerts">Strategy &amp; alerts</a><a href="#data">Data</a><a href="#operators">Operators</a></div>
+
+<h2 id="functions">Functions</h2>
+<div class="tablewrap"><table>
+<tr class="refrow"><th scope="row">sma · ema · wma · rsi · stdev</th><td>indicators — fn(series, period)</td></tr>
+<tr class="refrow"><th scope="row">dema · tema · tma · hull · wilders · linreg</th><td>more moving averages / fits — fn(series, period)</td></tr>
+<tr class="refrow"><th scope="row">roc(s, p) · mom(s, p) · rising(s, p) · falling(s, p)</th><td>percent rate of change, momentum, and strict up/down runs over p bars</td></tr>
+<tr class="refrow"><th scope="row">atr(period) · tr() · stoch(period) · mfi(period) · obv() · vwap(src, anchor)</th><td>bar-driven indicators reading OHLCV directly; vwap anchors to the session-timezone day by default — vwap(hlc3, "week") or "month" for higher anchors</td></tr>
+<tr class="refrow"><th scope="row">array.new(size, initial) · array.push(a, v) · array.pop(a) · array.shift(a) · array.unshift(a, v)</th><td>mutable arrays — reference values: var a = array.new() keeps one array across bars, without var you get a fresh one each bar</td></tr>
+<tr class="refrow"><th scope="row">array.get(a, i) · array.set(a, i, v) · array.size(a) · array.first(a) · array.last(a) · array.clear(a)</th><td>element access — get reads na out of range, set errors; loop with for k = 0 to array.size(a) - 1</td></tr>
+<tr class="refrow"><th scope="row">array.sum(a) · array.avg(a) · array.min(a) · array.max(a)</th><td>numeric aggregates over the elements, skipping na</td></tr>
+<tr class="refrow"><th scope="row">pivothigh(left, right) · pivotlow(left, right)</th><td>the pivot price once confirmed by `right` newer bars, else na</td></tr>
+<tr class="refrow"><th scope="row">highest · lowest · sum · change · offset</th><td>rolling-window helpers — fn(series, period)</td></tr>
+<tr class="refrow"><th scope="row">highestbars(s, p) · lowestbars(s, p)</th><td>bars back to the window extreme (0 = the current bar)</td></tr>
+<tr class="refrow"><th scope="row">crossover(a, b) · crossunder(a, b) · cross(a, b)</th><td>1 on the bar where a crosses b, else 0</td></tr>
+<tr class="refrow"><th scope="row">barssince(cond)</th><td>bars since cond was last true — 0 on the bar itself, na before the first; combine with [1] to latch alternating states</td></tr>
+<tr class="refrow"><th scope="row">valuewhen(cond, source)</th><td>the value of source at the most recent bar where cond was true — na before the first; e.g. an entry price at the last buy signal</td></tr>
+<tr class="refrow"><th scope="row">cum(series)</th><td>running cumulative sum over the whole tape — na counts as 0; e.g. cum(sellSig ? tradePnl : 0) totals realized P&amp;L</td></tr>
+<tr class="refrow"><th scope="row">timestamp("2026-01-01 09:30") · timestamp(y, m, d, h, min)</th><td>a date/time as ms since epoch, read as wall time in the session timezone (default New York), comparable with &lt; &lt;= &gt; &gt;= against time</td></tr>
+<tr class="refrow"><th scope="row">year · month · dayofmonth · dayofweek · hour · minute</th><td>calendar parts of a ms timestamp, elementwise, in the session timezone (dayofweek 0=Sun…6=Sat) — e.g. hour(time) &gt;= 10</td></tr>
+<tr class="refrow"><th scope="row">abs · sqrt · log · exp · round · floor · ceil · sign · pow</th><td>elementwise math</td></tr>
+<tr class="refrow"><th scope="row">nz(s, v) · na(s) · min · max · avg · iff(c, a, b)</th><td>utilities — nz replaces NaN, iff selects per bar</td></tr>
+<tr class="refrow"><th scope="row">tostring(x, 2)</th><td>number to text with optional decimals — e.g. infopanel("RSI " + tostring(r, 1))</td></tr>
+<tr class="refrow"><th scope="row">adx(p) · diplus(p) · diminus(p) · aroonup(p) · aroondown(p)</th><td>Wilder’s directional system and Aroon, reading the bars directly</td></tr>
+<tr class="refrow"><th scope="row">sar(0.02, 0.02, 0.2) · supertrend(p, mult) · supertrend_dir(p, mult)</th><td>parabolic SAR and Supertrend (line value / ±1 direction)</td></tr>
+<tr class="refrow"><th scope="row">cci(p) · willr(p) · correlation(a, b, p)</th><td>commodity channel index, Williams %R, and rolling Pearson correlation</td></tr>
+<tr class="refrow"><th scope="row">percentile(s, p, q) · median(s, p) · alma(s, p, offset, sigma)</th><td>sorted-window rank (linear interpolation), median, and the Arnaud Legoux MA</td></tr>
+<tr class="refrow"><th scope="row">sin · cos · tan · asin · acos · atan · atan2(y, x) · pi</th><td>trigonometry — angles in radians; pi is the constant</td></tr>
+<tr class="refrow"><th scope="row">str.format("rsi {0}", r) · str.contains · str.replace · str.upper · str.lower · str.length · str.split</th><td>text utilities — {0}-style placeholders; split returns an array</td></tr>
+<tr class="refrow"><th scope="row">security("1h", ema(close, 20))</th><td>evaluates the expression on higher-timeframe bars aggregated from the chart ("5m"…"4h", "1d", "1w") — non-repainting: the value only updates when the higher-TF bar completes</td></tr>
+</table></div>
+
+<h2 id="statements-state">Statements &amp; state</h2>
+<div class="tablewrap"><table>
+<tr class="refrow"><th scope="row">x = expr</th><td>per-bar variable — recomputed every bar; the script body runs once per bar, top to bottom</td></tr>
+<tr class="refrow"><th scope="row">var x = expr · x := expr</th><td>var declares once and persists across bars; := reassigns it (also required to modify outer variables from inside a block)</td></tr>
+<tr class="refrow"><th scope="row">if cond … else if … else …</th><td>conditional statements — the body is an indented block; expressions in untaken branches still evaluate, statements do not</td></tr>
+<tr class="refrow"><th scope="row">for i = 0 to 9 by 1</th><td>bounded loop over an indented block (by defaults to 1, may be negative)</td></tr>
+<tr class="refrow"><th scope="row">while cond · break · continue</th><td>loop while cond holds; break exits the loop, continue skips to the next pass</td></tr>
+<tr class="refrow"><th scope="row">switch x · 1 =&gt; y := 1 · =&gt; y := 0</th><td>compares x against each arm with ==; the bare =&gt; arm is the default; arms are single-line statements</td></tr>
+<tr class="refrow"><th scope="row">f(x, y) =&gt; x + y</th><td>user function — single expression, or an indented block ending with the return expression; each call site keeps its own indicator state</td></tr>
+<tr class="refrow"><th scope="row">x[2]</th><td>history access — the value 2 bars back, works on any expression; the offset may vary per bar</td></tr>
+</table></div>
+
+<h2 id="drawing">Drawing</h2>
+<div class="tablewrap"><table>
+<tr class="refrow"><th scope="row">study("Title", overlay=true, description="…")</th><td>names the script; overlay=false gives it its own pane; description shows on hover in the studies menu</td></tr>
+<tr class="refrow"><th scope="row">plot(series, color="#hex", title="…", width=2, style="line", linestyle="solid")</th><td>draws a line; styles: line, histogram, area, stepline, circles · linestyles: solid, dashed, dotted · capture it with a = plot(…) to use in fill</td></tr>
+<tr class="refrow"><th scope="row">hline(value, color="#hex")</th><td>horizontal level line</td></tr>
+<tr class="refrow"><th scope="row">fill(a, b, color="#hex", opacity=0.12)</th><td>shades the area between two plots (or raw series)</td></tr>
+<tr class="refrow"><th scope="row">plotshape(cond, shape="…", location="…", color="#hex", size=4)</th><td>marks bars where cond is true — shapes: triangleup, triangledown, circle, square, cross · locations: abovebar, belowbar, absolute</td></tr>
+<tr class="refrow"><th scope="row">plotbuy(cond, qty, price="close") · plotsell(cond, qty, price=…)</th><td>places a BUY/SELL trade marker on bars where cond is true; qty defaults to 1, color= overrides the green/red; price= anchors the marker — "open"/"high"/"low"/"close" or a number for a custom price (e.g. price=hl2)</td></tr>
+<tr class="refrow"><th scope="row">infopanel(value, title="…", color="#hex", precision=2)</th><td>adds a row to the info panel under the ticker chip showing the latest value — numbers format with precision decimals, strings (e.g. a ternary of labels) display as-is; color= may also be a ternary, the latest bar’s color applies</td></tr>
+<tr class="refrow"><th scope="row">barcolor(cond ? "#hex" : "#hex", when=cond)</th><td>recolors the price candles/line per bar; when= limits which bars</td></tr>
+<tr class="refrow"><th scope="row">bgcolor("#hex", when=cond, opacity=0.1)</th><td>vertical background wash behind bars where when is true</td></tr>
+<tr class="refrow"><th scope="row">input.int(9, "Length", minval=1) · input.float(0.85, "Offset", step=0.01, tooltip="…")</th><td>declares a user-tunable value and returns it; right-click the study on the chart to change inputs without editing the source</td></tr>
+<tr class="refrow"><th scope="row">input.bool(false, "Fast mode") · input.string("sma", "Mode", options="sma,ema,wma")</th><td>user-tunable toggle (returns 1/0) and text choice (options= is a comma-separated list rendered as a dropdown)</td></tr>
+<tr class="refrow"><th scope="row">input.time("2026-01-01 09:30", "Start date")</th><td>user-tunable date/time (picker in the study editor) returning a ms timestamp — na when unset, so `na(start) or time &gt;= start` means "no limit until a date is chosen"</td></tr>
+</table></div>
+
+<h2 id="strategy-alerts">Strategy &amp; alerts</h2>
+<div class="tablewrap"><table>
+<tr class="refrow"><th scope="row">strategy.buy(when, qty) · strategy.sell(when, qty)</th><td>fills a market order at the close of bars where when is true; opposite-side orders net against the open position and realize P&amp;L into the trade ledger</td></tr>
+<tr class="refrow"><th scope="row">strategy.buy(sig, qty=5, stop_loss=1.5, take_profit=3, trailing=2)</th><td>protective exits as price offsets from the average entry, checked against later bars’ ranges — stop wins when both hit inside one bar</td></tr>
+<tr class="refrow"><th scope="row">strategy.position_size · strategy.avg_price · strategy.open_pnl</th><td>live position state as of the start of the bar (after protective exits), marked at the current close</td></tr>
+<tr class="refrow"><th scope="row">strategy.realized_pnl · strategy.equity · strategy.trades · strategy.wins · strategy.losses</th><td>running account state; the full ledger and summary (win rate, profit factor, max drawdown) land in the result</td></tr>
+<tr class="refrow"><th scope="row">alertcondition(cond, title="…", message="close={{close}}")</th><td>declares an alert stream: 1 on bars where cond fires; {{open}}/{{close}}/{{time}}/{{bar_index}}-style placeholders render a per-fire message for backends</td></tr>
+<tr class="refrow"><th scope="row">strategy.config(initial_capital=10000, commission_percent=0.1, commission_cash=0, slippage=0.05, pyramiding=1)</th><td>backtest costs and limits, read once — slippage works against every fill, commissions subtract from net profit, pyramiding caps same-direction adds</td></tr>
+<tr class="refrow"><th scope="row">strategy.buy(sig, 10, limit=99.5, expires=20) · strategy.buy(sig, 10, stop=101)</th><td>pending entry orders: limit buys below / stop-entries above the market, checked on later bars (one working order per call site; expires= in bars)</td></tr>
+<tr class="refrow"><th scope="row">strategy.buy(sig, qty=5, qty_type="percent_of_equity")</th><td>position sizing: "shares" (default), "cash", or "percent_of_equity" resolved at the fill price</td></tr>
+<tr class="refrow"><th scope="row">line.new(x1, y1, x2, y2, …) · label.new(x, y, "txt", …) · box.new(x1, y1, x2, y2, bgcolor=…)</th><td>drawing objects in bar_index coordinates, created per bar where when= holds, capped at 500 each (oldest dropped); lines take color/width/style, labels text/color/size, boxes border and fill</td></tr>
+</table></div>
+
+<h2 id="data">Data</h2>
+<div class="tablewrap"><table>
+<tr class="refrow"><th scope="row">open · high · low · close · volume</th><td>raw bar series</td></tr>
+<tr class="refrow"><th scope="row">hl2 · hlc3 · ohlc4 · bar_index</th><td>derived series</td></tr>
+<tr class="refrow"><th scope="row">time</th><td>bar timestamps as ms since epoch — compare with the ordinary operators, e.g. time &gt;= timestamp("2026-01-01")</td></tr>
+<tr class="refrow"><th scope="row">current_datetime · date_today · market_open · market_close</th><td>“now” scalars anchored to the latest bar: its timestamp, session-timezone midnight of its day, and the market session bounds on that day (default 09:30 / 16:00 New York)</td></tr>
+<tr class="refrow"><th scope="row">barstate.isfirst · barstate.islast</th><td>1 on the first / latest bar of the tape — e.g. gate labels or alerts to the live bar</td></tr>
+</table></div>
+
+<h2 id="operators">Operators</h2>
+<div class="tablewrap"><table>
+<tr class="refrow"><th scope="row">+ − * / %</th><td>arithmetic, broadcasts scalars over series</td></tr>
+<tr class="refrow"><th scope="row">== != &lt; &lt;= &gt; &gt;=</th><td>comparisons — produce 1/0 series</td></tr>
+<tr class="refrow"><th scope="row">and · or · not</th><td>boolean logic</td></tr>
+<tr class="refrow"><th scope="row">cond ? a : b</th><td>ternary, chooses per bar when cond is a series</td></tr>
+<tr class="refrow"><th scope="row">true · false · na</th><td>literals — true/false are 1/0; bare na is the missing value (NaN), test for it with na(x)</td></tr>
+</table></div>
+</main>
+<footer>MIT licensed. Site generated from the repository's documentation of record
+(<code>js/src/docs.js</code>, <code>js/src/examples.js</code>, <code>spec/SPEC.md</code>)
+by <code>npm run docs:site</code>.</footer>
+</body>
+</html>

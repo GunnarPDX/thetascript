@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn theta-script</title>
+<meta name="description" content="A seven-step guided introduction to the theta-script language.">
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1f24; --muted: #57606a; --line: #d8dee4;
+  --accent: #0969da; --code-bg: #f6f8fa; --k: #cf222e; --s: #0a3069;
+  --c: #6e7781; --n: #0550ae; --o: #8250df;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --fg: #e6edf3; --muted: #8d96a0; --line: #30363d;
+    --accent: #58a6ff; --code-bg: #161b22; --k: #ff7b72; --s: #a5d6ff;
+    --c: #8b949e; --n: #79c0ff; --o: #d2a8ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+nav {
+  position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 0.6rem 1rem; display: flex; gap: 1.1rem; align-items: baseline;
+  flex-wrap: wrap; z-index: 10;
+}
+nav .brand { font-weight: 700; font-family: ui-monospace, monospace; margin-right: 0.5rem; }
+nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+nav a.brand { color: var(--fg); font-size: 1rem; }
+nav a[aria-current] { color: var(--accent); font-weight: 600; }
+nav a:hover { color: var(--accent); }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 1rem 0; }
+h2 { margin-top: 2.2rem; padding-top: 0.4rem; }
+h1 code, h2 code, h3 code { background: none; padding: 0; }
+a { color: var(--accent); }
+p code, li code, td code, th code {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 0.08em 0.32em; font-size: 0.86em;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.9rem 1.1rem; overflow-x: auto; line-height: 1.5;
+}
+pre code { font: 0.86rem/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.k { color: var(--k); } .s { color: var(--s); } .c { color: var(--c); font-style: italic; }
+.n { color: var(--n); } .o { color: var(--o); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid var(--line); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+th { background: var(--code-bg); }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 44rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 2rem 0; }
+.card {
+  border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem;
+  text-decoration: none; color: var(--fg); display: block;
+}
+.card:hover { border-color: var(--accent); }
+.card h3 { margin: 0 0 0.35rem; color: var(--accent); }
+.card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.tags { color: var(--muted); font-size: 0.85rem; font-family: ui-monospace, monospace; }
+.blurb { color: var(--muted); max-width: 44rem; }
+.toc { border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.2rem; margin: 1.4rem 0; column-width: 16rem; }
+.toc a { display: block; text-decoration: none; padding: 0.12rem 0; font-size: 0.93rem; }
+footer {
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem;
+  max-width: 60rem; margin: 0 auto; padding: 1.2rem 1.25rem 2.5rem;
+}
+.refrow th { font-family: ui-monospace, monospace; font-weight: 500; white-space: pre-wrap; width: 42%; }
+</style>
+</head>
+<body>
+<nav><a href="index.html" class="brand">theta-script</a><a href="learn.html" aria-current="page">Learn</a><a href="reference.html">Reference</a><a href="examples.html">Examples</a><a href="spec.html">Spec</a></nav>
+<main>
+
+<h1>Learn theta-script</h1>
+<p class="lede">The guided walkthrough from the script editor, in order. Each
+snippet is a complete script you can run as-is.</p>
+
+<h2 id="your-first-script">Your first script</h2>
+<p>A script runs once per bar, top to bottom, oldest bar first. Sources like close read the current bar, indicator calls update as the bars stream through them, and draw calls contribute that bar’s slice of the output. Start with a study() declaration and one plot:</p>
+<pre><code>study(<span class="s">"My First Script"</span>, overlay=<span class="k">true</span>)
+plot(ema(close, <span class="n">20</span>), color=<span class="s">"#22d3ee"</span>, width=<span class="n">2</span>)</code></pre>
+<p>overlay=true draws on the price chart; leave it off and the script gets its own pane below — right for oscillators like RSI. Save the script and add it to the chart like any other study.</p>
+
+<h2 id="series-and-history">Series and history</h2>
+<p>Every expression produces one value per bar. A plain assignment is recomputed each bar, and square brackets look back: spread[1] is the previous bar’s value. Values that don’t exist yet — the lookback before bar 0, an sma still filling its window — read as na, and na stays quiet: plots skip it, comparisons against it are 0.</p>
+<pre><code>study(<span class="s">"Range"</span>, overlay=<span class="k">false</span>)
+spread = high - low
+widening = spread &gt; spread[<span class="n">1</span>]
+plot(sma(spread, <span class="n">10</span>), title=<span class="s">"avg range"</span>)
+plot(spread, style=<span class="s">"histogram"</span>, color=<span class="s">"#7d8590"</span>)</code></pre>
+
+<h2 id="remembering-state">Remembering state</h2>
+<p>var declares a variable once, on the first bar, and keeps its value from bar to bar — use := to update it. Together with if blocks (indentation-delimited, like Python) this is how you count, latch, and accumulate:</p>
+<pre><code>study(<span class="s">"Up Bars"</span>, overlay=<span class="k">false</span>)
+<span class="k">var</span> upBars = <span class="n">0</span>
+<span class="k">if</span> close &gt; open
+    upBars <span class="o">:=</span> upBars + <span class="n">1</span>
+infopanel(upBars, title=<span class="s">"up bars"</span>)
+plot(<span class="n">100</span> * upBars / (bar_index + <span class="n">1</span>), title=<span class="s">"% up"</span>)</code></pre>
+
+<h2 id="signals">Signals</h2>
+<p>crossover(a, b) is 1 on the exact bar a crosses above b — the building block of most entries. plotbuy/plotsell drop buy and sell markers on the chart, and plotshape marks any condition:</p>
+<pre><code>study(<span class="s">"Cross Signals"</span>, overlay=<span class="k">true</span>)
+fast = ema(close, <span class="n">9</span>)
+slow = ema(close, <span class="n">21</span>)
+plot(fast, color=<span class="s">"#22d3ee"</span>)
+plot(slow, color=<span class="s">"#f59e0b"</span>)
+plotbuy(crossover(fast, slow), <span class="n">10</span>)
+plotsell(crossunder(fast, slow), <span class="n">10</span>)</code></pre>
+
+<h2 id="inputs">Inputs</h2>
+<p>input.* declarations surface as controls in the study’s settings, so one script serves many configurations. The call returns the chosen value; defaults apply until the user changes them:</p>
+<pre><code>study(<span class="s">"Tunable RSI"</span>, overlay=<span class="k">false</span>)
+len = input.int(<span class="n">14</span>, <span class="s">"RSI length"</span>, minval=<span class="n">2</span>)
+level = input.float(<span class="n">30</span>, <span class="s">"Band"</span>, minval=<span class="n">5</span>, maxval=<span class="n">45</span>)
+r = rsi(close, len)
+plot(r, color=<span class="s">"#a78bfa"</span>, width=<span class="n">2</span>)
+hline(level)
+hline(<span class="n">100</span> - level)</code></pre>
+
+<h2 id="backtesting">Backtesting</h2>
+<p>strategy.buy and strategy.sell turn signals into a simulated position: fills at the close of the signal bar, netted long/short, with optional protective exits (stop_loss, take_profit, trailing — all price offsets from entry). strategy.config sets capital and costs, and the result carries a full trade ledger with equity metrics:</p>
+<pre><code>study(<span class="s">"Golden Cross"</span>, overlay=<span class="k">true</span>)
+strategy.config(initial_capital=<span class="n">10000</span>, commission_percent=<span class="n">0.1</span>)
+fast = sma(close, <span class="n">20</span>)
+slow = sma(close, <span class="n">50</span>)
+plot(fast, color=<span class="s">"#22d3ee"</span>)
+plot(slow, color=<span class="s">"#f59e0b"</span>)
+strategy.buy(crossover(fast, slow), <span class="n">25</span>, qty_type=<span class="s">"percent_of_equity"</span>, stop_loss=<span class="n">2</span>)
+strategy.sell(crossunder(fast, slow), <span class="n">25</span>, qty_type=<span class="s">"percent_of_equity"</span>)</code></pre>
+<p>Read the live position from strategy.position_size, strategy.equity and friends — e.g. gate re-entries on strategy.position_size == 0.</p>
+
+<h2 id="going-further">Going further</h2>
+<p>From here the Reference tab documents everything: higher-timeframe data with security("1h", …), alerts with {{close}}-style message placeholders, arrays, drawing objects (line.new, label.new, box.new), and the full indicator set. The Examples tab has complete scripts you can import into the editor and dissect.</p>
+</main>
+<footer>MIT licensed. Site generated from the repository's documentation of record
+(<code>js/src/docs.js</code>, <code>js/src/examples.js</code>, <code>spec/SPEC.md</code>)
+by <code>npm run docs:site</code>.</footer>
+</body>
+</html>

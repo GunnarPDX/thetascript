@@ -165,6 +165,22 @@ The Python and Elixir bindings speak JSON strings in and wire-encoded
 JSON out; both are thin wrappers over the Rust core, so all three native
 runtimes share one implementation of the semantics.
 
+## Documentation site
+
+[`docs/`](docs/) is a static site for GitHub Pages: a landing page, a
+guided tutorial, the full builtin reference, the tested example scripts,
+and the rendered spec and conformance contract. It is generated — never
+edited by hand — from the documentation of record (`js/src/docs.js`,
+`js/src/examples.js`, `spec/SPEC.md`, `conformance/README.md`):
+
+```sh
+cd js && npm run docs:site   # regenerates docs/, commit the output
+```
+
+To publish: push to GitHub, then Settings → Pages → Deploy from a
+branch → `main` / `docs/`. Regenerate whenever the source docs change
+(the drift test in `js/test/docs.test.js` keeps `docs.js` itself honest).
+
 ## Running the test suites
 
 ```sh

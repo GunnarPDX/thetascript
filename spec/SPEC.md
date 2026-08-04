@@ -7,7 +7,7 @@ A small language for chart studies and trade-signal
 scripts, executed **once per bar**. This document is the normative
 definition; the JavaScript interpreter in this directory is the reference
 implementation, and the fixtures under
-[`conformance/`](conformance/README.md) are the executable contract a port
+[`conformance/`](../conformance/README.md) are the executable contract a port
 must satisfy.
 
 ```

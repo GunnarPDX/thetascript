@@ -18,7 +18,8 @@
   ],
   "scripts": {
     "test": "jest",
-    "conformance:update": "UPDATE_CONFORMANCE=1 jest conformance"
+    "conformance:update": "UPDATE_CONFORMANCE=1 jest conformance",
+    "docs:site": "node scripts/build-docs-site.mjs"
   },
   "jest": {
     "testEnvironment": "node",

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>theta-script examples</title>
+<meta name="description" content="Complete, tested theta-script example scripts.">
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1f24; --muted: #57606a; --line: #d8dee4;
+  --accent: #0969da; --code-bg: #f6f8fa; --k: #cf222e; --s: #0a3069;
+  --c: #6e7781; --n: #0550ae; --o: #8250df;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --fg: #e6edf3; --muted: #8d96a0; --line: #30363d;
+    --accent: #58a6ff; --code-bg: #161b22; --k: #ff7b72; --s: #a5d6ff;
+    --c: #8b949e; --n: #79c0ff; --o: #d2a8ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+nav {
+  position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 0.6rem 1rem; display: flex; gap: 1.1rem; align-items: baseline;
+  flex-wrap: wrap; z-index: 10;
+}
+nav .brand { font-weight: 700; font-family: ui-monospace, monospace; margin-right: 0.5rem; }
+nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+nav a.brand { color: var(--fg); font-size: 1rem; }
+nav a[aria-current] { color: var(--accent); font-weight: 600; }
+nav a:hover { color: var(--accent); }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 1rem 0; }
+h2 { margin-top: 2.2rem; padding-top: 0.4rem; }
+h1 code, h2 code, h3 code { background: none; padding: 0; }
+a { color: var(--accent); }
+p code, li code, td code, th code {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 0.08em 0.32em; font-size: 0.86em;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.9rem 1.1rem; overflow-x: auto; line-height: 1.5;
+}
+pre code { font: 0.86rem/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.k { color: var(--k); } .s { color: var(--s); } .c { color: var(--c); font-style: italic; }
+.n { color: var(--n); } .o { color: var(--o); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid var(--line); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+th { background: var(--code-bg); }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 44rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 2rem 0; }
+.card {
+  border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem;
+  text-decoration: none; color: var(--fg); display: block;
+}
+.card:hover { border-color: var(--accent); }
+.card h3 { margin: 0 0 0.35rem; color: var(--accent); }
+.card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.tags { color: var(--muted); font-size: 0.85rem; font-family: ui-monospace, monospace; }
+.blurb { color: var(--muted); max-width: 44rem; }
+.toc { border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.2rem; margin: 1.4rem 0; column-width: 16rem; }
+.toc a { display: block; text-decoration: none; padding: 0.12rem 0; font-size: 0.93rem; }
+footer {
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem;
+  max-width: 60rem; margin: 0 auto; padding: 1.2rem 1.25rem 2.5rem;
+}
+.refrow th { font-family: ui-monospace, monospace; font-weight: 500; white-space: pre-wrap; width: 42%; }
+</style>
+</head>
+<body>
+<nav><a href="index.html" class="brand">theta-script</a><a href="learn.html">Learn</a><a href="reference.html">Reference</a><a href="examples.html" aria-current="page">Examples</a><a href="spec.html">Spec</a></nav>
+<main>
+
+<h1>Examples</h1>
+<p class="lede">Complete scripts, from indicator overlays to backtested
+strategies. Every example on this page is executed against a synthetic tape by
+the JS test suite, so each one is guaranteed to parse and run on the current
+engine.</p>
+<div class="toc"><a href="#ema-cross-signals">EMA Cross Signals</a><a href="#bollinger-bands">Bollinger Bands</a><a href="#rsi-pane">RSI Pane</a><a href="#trend-bar-coloring">Trend Bar Coloring</a><a href="#overbought-zones">Overbought Zones</a><a href="#session-vwap-bands">Session VWAP Bands</a><a href="#pivot-levels">Pivot Levels</a><a href="#pivot-memory">Pivot Memory</a><a href="#volume-dashboard">Volume Dashboard</a><a href="#trend-strength-meter">Trend Strength Meter</a><a href="#breakout-strategy">Breakout Strategy</a><a href="#yesno-auto-trader">YesNo Auto Trader</a><a href="#cross-strategy">Cross Strategy</a><a href="#macd-pane">MACD Pane</a></div>
+
+<h2 id="ema-cross-signals">EMA Cross Signals</h2>
+<p class="tags">plotshape · crossover</p>
+<p class="blurb">Two moving averages with triangle markers stamped on the bars where they cross.</p>
+<pre><code>study(<span class="s">"EMA Cross Signals"</span>, description=<span class="s">"Fast/slow EMA crosses with signal arrows"</span>, overlay=<span class="k">true</span>)
+fast = ema(close, <span class="n">9</span>)
+slow = ema(close, <span class="n">21</span>)
+plot(fast, color=<span class="s">"#22d3ee"</span>, title=<span class="s">"Fast"</span>)
+plot(slow, color=<span class="s">"#f59e0b"</span>, title=<span class="s">"Slow"</span>)
+plotshape(crossover(fast, slow), shape=<span class="s">"triangleup"</span>, location=<span class="s">"belowbar"</span>, color=<span class="s">"#22c55e"</span>)
+plotshape(crossunder(fast, slow), shape=<span class="s">"triangledown"</span>, location=<span class="s">"abovebar"</span>, color=<span class="s">"#ef4444"</span>)</code></pre>
+
+<h2 id="bollinger-bands">Bollinger Bands</h2>
+<p class="tags">fill · stdev</p>
+<p class="blurb">Classic bands built from sma + stdev, with fill() shading the channel between plot references.</p>
+<pre><code>study(<span class="s">"Bollinger Bands"</span>, description=<span class="s">"SMA basis with 2-sigma bands and channel fill"</span>, overlay=<span class="k">true</span>)
+mid = sma(close, <span class="n">20</span>)
+dev = stdev(close, <span class="n">20</span>) * <span class="n">2</span>
+u = plot(mid + dev, color=<span class="s">"#22d3ee"</span>, title=<span class="s">"Upper"</span>)
+l = plot(mid - dev, color=<span class="s">"#22d3ee"</span>, title=<span class="s">"Lower"</span>)
+plot(mid, color=<span class="s">"#f59e0b"</span>, title=<span class="s">"Basis"</span>)
+fill(u, l, color=<span class="s">"#22d3ee"</span>, opacity=<span class="n">0.08</span>)</code></pre>
+
+<h2 id="rsi-pane">RSI Pane</h2>
+<p class="tags">pane · hline</p>
+<p class="blurb">overlay=false gives the script its own pane; hline() marks the 70/30 zones.</p>
+<pre><code>study(<span class="s">"RSI"</span>, description=<span class="s">"Relative Strength Index with 70/30 zones"</span>, overlay=<span class="k">false</span>)
+r = rsi(close, <span class="n">14</span>)
+plot(r, color=<span class="s">"#a78bfa"</span>, width=<span class="n">2</span>)
+hline(<span class="n">70</span>, color=<span class="s">"#ef4444"</span>)
+hline(<span class="n">50</span>)
+hline(<span class="n">30</span>, color=<span class="s">"#22c55e"</span>)</code></pre>
+
+<h2 id="trend-bar-coloring">Trend Bar Coloring</h2>
+<p class="tags">barcolor</p>
+<p class="blurb">barcolor() repaints the price candles from a ternary color series — green above the trend, red below.</p>
+<pre><code>study(<span class="s">"Trend Bars"</span>, description=<span class="s">"Candles painted by their side of the 50 EMA"</span>, overlay=<span class="k">true</span>)
+trend = ema(close, <span class="n">50</span>)
+plot(trend, color=<span class="s">"#f59e0b"</span>, title=<span class="s">"Trend"</span>)
+barcolor(close &gt; trend ? <span class="s">"#22c55e"</span> : <span class="s">"#ef4444"</span>)</code></pre>
+
+<h2 id="overbought-zones">Overbought Zones</h2>
+<p class="tags">bgcolor</p>
+<p class="blurb">bgcolor() washes the background behind stretched bars; when= gates which bars get painted.</p>
+<pre><code>study(<span class="s">"Overbought Zones"</span>, description=<span class="s">"Background washes where RSI is stretched"</span>, overlay=<span class="k">true</span>)
+r = rsi(close, <span class="n">14</span>)
+plot(sma(close, <span class="n">20</span>), color=<span class="s">"#38bdf8"</span>)
+bgcolor(<span class="s">"#ef4444"</span>, when=r &gt; <span class="n">70</span>, opacity=<span class="n">0.14</span>)
+bgcolor(<span class="s">"#22c55e"</span>, when=r &lt; <span class="n">30</span>, opacity=<span class="n">0.14</span>)</code></pre>
+
+<h2 id="session-vwap-bands">Session VWAP Bands</h2>
+<p class="tags">vwap · fill · alerts</p>
+<p class="blurb">Session-anchored VWAP (resets each trading day in the chart timezone) with deviation bands and a cross-under alert.</p>
+<pre><code>study(<span class="s">"Session VWAP"</span>, description=<span class="s">"Session-anchored VWAP with deviation bands"</span>, overlay=<span class="k">true</span>)
+v = vwap()
+dev = stdev(close, <span class="n">30</span>)
+u = plot(v + dev * <span class="n">2</span>, color=<span class="s">"#a78bfa"</span>, title=<span class="s">"Upper"</span>)
+lo = plot(v - dev * <span class="n">2</span>, color=<span class="s">"#a78bfa"</span>, title=<span class="s">"Lower"</span>)
+plot(v, color=<span class="s">"#f5b942"</span>, width=<span class="n">2</span>, title=<span class="s">"VWAP"</span>)
+fill(u, lo, color=<span class="s">"#a78bfa"</span>, opacity=<span class="n">0.07</span>)
+alertcondition(crossunder(close, v), title=<span class="s">"Below VWAP"</span>, message=<span class="s">"Price crossed under session VWAP"</span>)</code></pre>
+
+<h2 id="pivot-levels">Pivot Levels</h2>
+<p class="tags">pivots · stepline · valuewhen</p>
+<p class="blurb">Confirmed swing highs/lows from pivothigh()/pivotlow(), carried forward with valuewhen() as stepped support and resistance.</p>
+<pre><code>study(<span class="s">"Pivot Levels"</span>, description=<span class="s">"Confirmed swing pivots carried forward as support/resistance"</span>, overlay=<span class="k">true</span>)
+left = input.int(<span class="n">3</span>, <span class="s">"Left bars"</span>, minval=<span class="n">1</span>)
+right = input.int(<span class="n">3</span>, <span class="s">"Right bars"</span>, minval=<span class="n">1</span>)
+ph = pivothigh(left, right)
+pl = pivotlow(left, right)
+res = valuewhen(<span class="k">not</span> <span class="k">na</span>(ph), ph)
+sup = valuewhen(<span class="k">not</span> <span class="k">na</span>(pl), pl)
+plot(res, color=<span class="s">"#ec407a"</span>, style=<span class="s">"stepline"</span>, linestyle=<span class="s">"dashed"</span>, title=<span class="s">"Resistance"</span>)
+plot(sup, color=<span class="s">"#26c6da"</span>, style=<span class="s">"stepline"</span>, linestyle=<span class="s">"dashed"</span>, title=<span class="s">"Support"</span>)
+plotshape(<span class="k">not</span> <span class="k">na</span>(ph), shape=<span class="s">"triangledown"</span>, location=<span class="s">"abovebar"</span>, color=<span class="s">"#ec407a"</span>, size=<span class="n">3</span>)
+plotshape(<span class="k">not</span> <span class="k">na</span>(pl), shape=<span class="s">"triangleup"</span>, location=<span class="s">"belowbar"</span>, color=<span class="s">"#26c6da"</span>, size=<span class="n">3</span>)</code></pre>
+
+<h2 id="pivot-memory">Pivot Memory</h2>
+<p class="tags">arrays · pivots · stepline</p>
+<p class="blurb">Arrays as rolling memory: the last N confirmed swing highs/lows are kept in array.new() buffers and averaged into stepped support/resistance.</p>
+<pre><code>study(<span class="s">"Pivot Memory"</span>, description=<span class="s">"Average of the last N confirmed swing pivots, from array memory"</span>, overlay=<span class="k">true</span>)
+keep = input.int(<span class="n">5</span>, <span class="s">"Pivots to keep"</span>, minval=<span class="n">1</span>, maxval=<span class="n">20</span>)
+<span class="k">var</span> highs = array.new()
+<span class="k">var</span> lows = array.new()
+ph = pivothigh(<span class="n">3</span>, <span class="n">3</span>)
+pl = pivotlow(<span class="n">3</span>, <span class="n">3</span>)
+<span class="k">if</span> <span class="k">not</span> <span class="k">na</span>(ph)
+    array.push(highs, ph)
+<span class="k">if</span> array.size(highs) &gt; keep
+    dropped = array.shift(highs)
+<span class="k">if</span> <span class="k">not</span> <span class="k">na</span>(pl)
+    array.push(lows, pl)
+<span class="k">if</span> array.size(lows) &gt; keep
+    dropped = array.shift(lows)
+plot(array.avg(highs), color=<span class="s">"#ec407a"</span>, style=<span class="s">"stepline"</span>, title=<span class="s">"Avg resistance"</span>)
+plot(array.avg(lows), color=<span class="s">"#26c6da"</span>, style=<span class="s">"stepline"</span>, title=<span class="s">"Avg support"</span>)
+infopanel(tostring(array.size(highs), <span class="n">0</span>) + <span class="s">"/"</span> + tostring(array.size(lows), <span class="n">0</span>), title=<span class="s">"Pivots stored"</span>)</code></pre>
+
+<h2 id="volume-dashboard">Volume Dashboard</h2>
+<p class="tags">pane · histogram · obv · mfi</p>
+<p class="blurb">A pane with plot styles: volume as a histogram under its average line, plus OBV and money-flow readouts in the info panel.</p>
+<pre><code>study(<span class="s">"Volume Dashboard"</span>, description=<span class="s">"Volume histogram with flow readouts"</span>, overlay=<span class="k">false</span>)
+plot(volume, style=<span class="s">"histogram"</span>, color=<span class="s">"#3b82f6"</span>, title=<span class="s">"Volume"</span>)
+plot(sma(volume, <span class="n">20</span>), color=<span class="s">"#f59e0b"</span>, width=<span class="n">2</span>, title=<span class="s">"Average"</span>)
+infopanel(obv(), title=<span class="s">"OBV"</span>, precision=<span class="n">0</span>)
+infopanel(mfi(<span class="n">14</span>), title=<span class="s">"MFI"</span>, precision=<span class="n">1</span>)
+barcolor(volume &gt; sma(volume, <span class="n">20</span>) * <span class="n">2</span> ? <span class="s">"#26c6da"</span> : <span class="k">na</span>)</code></pre>
+
+<h2 id="trend-strength-meter">Trend Strength Meter</h2>
+<p class="tags">function · for · tostring</p>
+<p class="blurb">A user function with a for loop counts rising bars over a window; the background shades by strength and the info panel formats it with tostring().</p>
+<pre><code>study(<span class="s">"Trend Strength"</span>, description=<span class="s">"Rising-bar ratio over a window, shading the background"</span>, overlay=<span class="k">true</span>)
+lookback = input.int(<span class="n">10</span>, <span class="s">"Window"</span>, minval=<span class="n">2</span>, maxval=<span class="n">50</span>)
+strength(n) <span class="o">=&gt;</span>
+    s = <span class="n">0.0</span>
+    <span class="k">for</span> k = <span class="n">0</span> <span class="k">to</span> n - <span class="n">1</span>
+        s <span class="o">:=</span> s + (close[k] &gt; close[k + <span class="n">1</span>] ? <span class="n">1</span> : <span class="n">0</span>)
+    s / n
+st = strength(lookback)
+plot(ema(close, <span class="n">20</span>), color=<span class="s">"#f5b942"</span>, title=<span class="s">"Trend"</span>)
+bgcolor(<span class="s">"#26c6da"</span>, when=st &gt; <span class="n">0.65</span>, opacity=<span class="n">0.12</span>)
+bgcolor(<span class="s">"#ec407a"</span>, when=st &lt; <span class="n">0.35</span>, opacity=<span class="n">0.12</span>)
+infopanel(<span class="s">"Strength "</span> + tostring(st * <span class="n">100</span>, <span class="n">0</span>) + <span class="s">"%"</span>, title=<span class="s">"Trend"</span>, color=st &gt; <span class="n">0.5</span> ? <span class="s">"#26c6da"</span> : <span class="s">"#ec407a"</span>)</code></pre>
+
+<h2 id="breakout-strategy">Breakout Strategy</h2>
+<p class="tags">strategy · stops · atr</p>
+<p class="blurb">Buys 20-bar breakouts with an ATR-scaled stop-loss and take-profit; the strategy engine tracks fills, the ledger and P&amp;L.</p>
+<pre><code>study(<span class="s">"Breakout Strategy"</span>, description=<span class="s">"Channel breakouts with ATR-scaled protective exits"</span>, overlay=<span class="k">true</span>)
+lookback = input.int(<span class="n">20</span>, <span class="s">"Lookback"</span>, minval=<span class="n">5</span>)
+stopMult = input.float(<span class="n">1.5</span>, <span class="s">"Stop ATR mult"</span>, step=<span class="n">0.1</span>, minval=<span class="n">0.1</span>)
+qty = input.float(<span class="n">10</span>, <span class="s">"Qty"</span>, minval=<span class="n">0.01</span>)
+hh = highest(high, lookback)
+plot(hh, color=<span class="s">"#22d3ee"</span>, linestyle=<span class="s">"dashed"</span>, title=<span class="s">"Breakout level"</span>)
+a = atr(<span class="n">14</span>)
+brk = close &gt; hh[<span class="n">1</span>]
+strategy.buy(brk <span class="k">and</span> strategy.position_size == <span class="n">0</span>, qty=qty, stop_loss=a * stopMult, take_profit=a * <span class="n">3</span>)
+plotshape(brk, shape=<span class="s">"triangleup"</span>, location=<span class="s">"belowbar"</span>, color=<span class="s">"#26c6da"</span>, size=<span class="n">3</span>)
+infopanel(strategy.trades, title=<span class="s">"Trades"</span>, precision=<span class="n">0</span>)
+infopanel(strategy.realized_pnl, title=<span class="s">"Realized P&amp;L"</span>)
+infopanel(strategy.open_pnl, title=<span class="s">"Open P&amp;L"</span>)</code></pre>
+
+<h2 id="yesno-auto-trader">YesNo Auto Trader</h2>
+<p class="tags">plotbuy · barcolor · infopanel</p>
+<p class="blurb">A YesNo-style vote ensemble: six bullish votes paint the candles through the five trend states, and plotbuy()/plotsell() alternate — buy on the first blue candle, sell on the next red, repeat.</p>
+<pre><code>study(<span class="s">"YesNo Auto Trader"</span>, description=<span class="s">"Vote-ensemble trend states; buys the first blue candle, sells the next red, and alternates"</span>, overlay=<span class="k">true</span>)
+n = input.int(<span class="n">21</span>, <span class="s">"Length"</span>, minval=<span class="n">2</span>)
+qty = input.float(<span class="n">10</span>, <span class="s">"Trade qty"</span>, minval=<span class="n">0.01</span>)
+startT = input.time(<span class="s">""</span>, <span class="s">"Start date"</span>)
+active = <span class="k">na</span>(startT) <span class="k">or</span> time &gt;= startT
+fastE = ema(close, <span class="n">9</span>)
+slowE = ema(close, n)
+longS = sma(close, <span class="n">50</span>)
+r = rsi(close, <span class="n">14</span>)
+macdL = ema(close, <span class="n">12</span>) - ema(close, <span class="n">26</span>)
+sig = ema(macdL, <span class="n">9</span>)
+score = (close &gt; slowE) + (fastE &gt; slowE) + (macdL &gt; sig) + (r &gt; <span class="n">50</span>) + (close &gt; longS) + (close &gt; close[<span class="n">10</span>])
+plot(slowE, color=<span class="s">"#f5b942"</span>, title=<span class="s">"Trend"</span>)
+barcolor(score &gt;= <span class="n">5</span> ? <span class="s">"#26c6da"</span> : score &gt;= <span class="n">4</span> ? <span class="s">"#8adcea"</span> : score &gt;= <span class="n">3</span> ? <span class="s">"#f5b942"</span> : score &gt;= <span class="n">2</span> ? <span class="s">"#ec407a"</span> : <span class="s">"#7e57c2"</span>)
+blue = active <span class="k">and</span> score &gt;= <span class="n">4</span>
+red = active <span class="k">and</span> score &lt;= <span class="n">2</span>
+inLong = nz(barssince(blue), <span class="n">9999</span>) &lt; nz(barssince(red), <span class="n">9999</span>)
+buySig = blue <span class="k">and</span> <span class="k">not</span> inLong[<span class="n">1</span>]
+sellSig = red <span class="k">and</span> inLong[<span class="n">1</span>]
+plotbuy(buySig, qty, color=<span class="s">"#26c6da"</span>)
+plotsell(sellSig, qty, color=<span class="s">"#ec407a"</span>)
+entry = valuewhen(buySig, close)
+pnl = (close - entry) * qty
+pnlPct = (close / entry - <span class="n">1</span>) * <span class="n">100</span>
+pnlColor = <span class="k">not</span> inLong ? <span class="s">"#8f8f98"</span> : pnl &gt;= <span class="n">0</span> ? <span class="s">"#26c6da"</span> : <span class="s">"#ec407a"</span>
+infopanel(score, title=<span class="s">"Votes (of 6)"</span>, precision=<span class="n">0</span>)
+infopanel(inLong ? <span class="s">"long"</span> : <span class="s">"flat"</span>, title=<span class="s">"Position"</span>, color=inLong ? <span class="s">"#26c6da"</span> : <span class="s">"#ec407a"</span>)
+infopanel(inLong ? pnl : <span class="s">"—"</span>, title=<span class="s">"Open P&amp;L $"</span>, color=pnlColor)
+infopanel(inLong ? pnlPct : <span class="s">"—"</span>, title=<span class="s">"Open P&amp;L %"</span>, color=pnlColor)
+realized = cum(sellSig ? (close - entry) * qty : <span class="n">0</span>)
+invested = cum(buySig ? close * qty : <span class="n">0</span>)
+realizedPct = invested &gt; <span class="n">0</span> ? realized / invested * <span class="n">100</span> : <span class="n">0</span>
+realColor = realized &gt;= <span class="n">0</span> ? <span class="s">"#26c6da"</span> : <span class="s">"#ec407a"</span>
+infopanel(realized, title=<span class="s">"Total P&amp;L $"</span>, color=realColor)
+infopanel(realizedPct, title=<span class="s">"Total P&amp;L %"</span>, color=realColor)
+wins = cum(sellSig <span class="k">and</span> close &gt; entry ? <span class="n">1</span> : <span class="n">0</span>)
+tradesN = cum(sellSig ? <span class="n">1</span> : <span class="n">0</span>)
+losses = tradesN - wins
+infopanel(tradesN &gt; <span class="n">0</span> ? wins + <span class="s">"/"</span> + losses : <span class="s">"—"</span>, title=<span class="s">"Win/loss"</span>, color=tradesN &gt; <span class="n">0</span> ? (wins &gt;= losses ? <span class="s">"#26c6da"</span> : <span class="s">"#ec407a"</span>) : <span class="s">"#8f8f98"</span>)</code></pre>
+
+<h2 id="cross-strategy">Cross Strategy</h2>
+<p class="tags">strategy · var · alerts</p>
+<p class="blurb">A per-bar strategy: var/if state, a user function, strategy.buy/sell with a trailing stop, and alerts. The engine tracks the position, ledger and P&amp;L.</p>
+<pre><code>study(<span class="s">"Cross Strategy"</span>, description=<span class="s">"EMA cross entries with a trailing stop and alert conditions"</span>, overlay=<span class="k">true</span>)
+len = input.int(<span class="n">21</span>, <span class="s">"Slow length"</span>, minval=<span class="n">2</span>)
+qty = input.float(<span class="n">10</span>, <span class="s">"Qty"</span>, minval=<span class="n">0.01</span>)
+trail = input.float(<span class="n">2</span>, <span class="s">"Trailing stop"</span>, minval=<span class="n">0.1</span>)
+smooth(x) <span class="o">=&gt;</span> ema(x, <span class="n">9</span>)
+fast = smooth(close)
+slow = ema(close, len)
+plot(fast, color=<span class="s">"#22d3ee"</span>, title=<span class="s">"Fast"</span>)
+plot(slow, color=<span class="s">"#f59e0b"</span>, title=<span class="s">"Slow"</span>)
+up = crossover(fast, slow)
+down = crossunder(fast, slow)
+strategy.buy(up, qty=qty, trailing=trail)
+strategy.sell(down, qty=qty)
+<span class="k">var</span> wins0 = <span class="n">0</span>
+<span class="k">if</span> strategy.wins &gt; wins0
+    wins0 <span class="o">:=</span> strategy.wins
+barcolor(strategy.position_size &gt; <span class="n">0</span> ? <span class="s">"#26c6da"</span> : <span class="k">na</span>)
+infopanel(strategy.position_size, title=<span class="s">"Position"</span>, precision=<span class="n">0</span>)
+infopanel(strategy.open_pnl, title=<span class="s">"Open P&amp;L"</span>)
+infopanel(strategy.realized_pnl, title=<span class="s">"Realized"</span>)
+infopanel(tostring(strategy.wins, <span class="n">0</span>) + <span class="s">"/"</span> + tostring(strategy.losses, <span class="n">0</span>), title=<span class="s">"Win/loss"</span>)
+alertcondition(up, title=<span class="s">"Cross up"</span>, message=<span class="s">"Fast EMA crossed above slow"</span>)
+alertcondition(down, title=<span class="s">"Cross down"</span>)</code></pre>
+
+<h2 id="macd-pane">MACD Pane</h2>
+<p class="tags">pane · fill</p>
+<p class="blurb">MACD and signal lines in a pane, the gap between them shaded with a raw-series fill.</p>
+<pre><code>study(<span class="s">"MACD"</span>, description=<span class="s">"MACD and signal with shaded divergence"</span>, overlay=<span class="k">false</span>)
+macd = ema(close, <span class="n">12</span>) - ema(close, <span class="n">26</span>)
+signal = ema(macd, <span class="n">9</span>)
+m = plot(macd, color=<span class="s">"#22d3ee"</span>, title=<span class="s">"MACD"</span>)
+sg = plot(signal, color=<span class="s">"#f59e0b"</span>, title=<span class="s">"Signal"</span>)
+fill(m, sg, color=<span class="s">"#a78bfa"</span>, opacity=<span class="n">0.15</span>)
+hline(<span class="n">0</span>)</code></pre>
+</main>
+<footer>MIT licensed. Site generated from the repository's documentation of record
+(<code>js/src/docs.js</code>, <code>js/src/examples.js</code>, <code>spec/SPEC.md</code>)
+by <code>npm run docs:site</code>.</footer>
+</body>
+</html>

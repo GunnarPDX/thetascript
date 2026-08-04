@@ -1,12 +1,12 @@
 # Conformance corpus
 
-The executable contract for the scripting language (see [`../SPEC.md`](../SPEC.md)).
+The executable contract for the scripting language (see [`../SPEC.md`](../spec/SPEC.md)).
 An implementation of the language is *conforming* iff it reproduces every
 fixture in this directory. The JavaScript interpreter in `js/` is the
 reference implementation and the generator of these fixtures.
 
 Known conforming implementations: the JS reference, and the Rust core at
-[`rust/theta-script`](../../../rust/theta-script/) (`cargo test` runs this corpus).
+[`rust/theta-script`](../rust/theta-script/) (`cargo test` runs this corpus).
 
 ## Layout
 

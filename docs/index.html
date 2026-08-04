@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>theta-script — a per-bar scripting language for chart studies</title>
+<meta name="description" content="theta-script: a per-bar scripting language for chart studies and trade signals, with four conforming runtimes.">
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1f24; --muted: #57606a; --line: #d8dee4;
+  --accent: #0969da; --code-bg: #f6f8fa; --k: #cf222e; --s: #0a3069;
+  --c: #6e7781; --n: #0550ae; --o: #8250df;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --fg: #e6edf3; --muted: #8d96a0; --line: #30363d;
+    --accent: #58a6ff; --code-bg: #161b22; --k: #ff7b72; --s: #a5d6ff;
+    --c: #8b949e; --n: #79c0ff; --o: #d2a8ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+nav {
+  position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 0.6rem 1rem; display: flex; gap: 1.1rem; align-items: baseline;
+  flex-wrap: wrap; z-index: 10;
+}
+nav .brand { font-weight: 700; font-family: ui-monospace, monospace; margin-right: 0.5rem; }
+nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+nav a.brand { color: var(--fg); font-size: 1rem; }
+nav a[aria-current] { color: var(--accent); font-weight: 600; }
+nav a:hover { color: var(--accent); }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 1rem 0; }
+h2 { margin-top: 2.2rem; padding-top: 0.4rem; }
+h1 code, h2 code, h3 code { background: none; padding: 0; }
+a { color: var(--accent); }
+p code, li code, td code, th code {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 0.08em 0.32em; font-size: 0.86em;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.9rem 1.1rem; overflow-x: auto; line-height: 1.5;
+}
+pre code { font: 0.86rem/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.k { color: var(--k); } .s { color: var(--s); } .c { color: var(--c); font-style: italic; }
+.n { color: var(--n); } .o { color: var(--o); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid var(--line); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+th { background: var(--code-bg); }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 44rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 2rem 0; }
+.card {
+  border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem;
+  text-decoration: none; color: var(--fg); display: block;
+}
+.card:hover { border-color: var(--accent); }
+.card h3 { margin: 0 0 0.35rem; color: var(--accent); }
+.card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.tags { color: var(--muted); font-size: 0.85rem; font-family: ui-monospace, monospace; }
+.blurb { color: var(--muted); max-width: 44rem; }
+.toc { border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.2rem; margin: 1.4rem 0; column-width: 16rem; }
+.toc a { display: block; text-decoration: none; padding: 0.12rem 0; font-size: 0.93rem; }
+footer {
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem;
+  max-width: 60rem; margin: 0 auto; padding: 1.2rem 1.25rem 2.5rem;
+}
+.refrow th { font-family: ui-monospace, monospace; font-weight: 500; white-space: pre-wrap; width: 42%; }
+</style>
+</head>
+<body>
+<nav><a href="index.html" aria-current="page" class="brand">theta-script</a><a href="learn.html">Learn</a><a href="reference.html">Reference</a><a href="examples.html">Examples</a><a href="spec.html">Spec</a></nav>
+<main>
+
+<h1>theta-script</h1>
+<p class="lede">A small scripting language for chart studies and trade-signal
+scripts, executed once per bar. One language, four conforming runtimes —
+JavaScript, Rust, Python and Elixir — held together by a normative spec and a
+bit-exact conformance corpus.</p>
+
+<pre><code>study(<span class="s">"Cross Strategy"</span>, overlay=<span class="k">true</span>)
+fast = ema(close, <span class="n">9</span>)
+slow = ema(close, <span class="n">21</span>)
+plot(fast, color=<span class="s">"#22d3ee"</span>)
+plot(slow, color=<span class="s">"#f59e0b"</span>, width=<span class="n">2</span>)
+<span class="k">var</span> entries = <span class="n">0</span>
+<span class="k">if</span> crossover(fast, slow)
+    entries <span class="o">:=</span> entries + <span class="n">1</span>
+strategy.buy(crossover(fast, slow), <span class="n">10</span>, trailing=<span class="n">2</span>)
+strategy.sell(crossunder(fast, slow), <span class="n">10</span>)
+alertcondition(crossover(fast, slow), message=<span class="s">"cross up"</span>)</code></pre>
+
+<div class="cards">
+  <a class="card" href="learn.html"><h3>Learn</h3><p>A seven-step walkthrough from your first plot to a backtested strategy.</p></a>
+  <a class="card" href="reference.html"><h3>Reference</h3><p>Every builtin, statement, draw call, source and operator.</p></a>
+  <a class="card" href="examples.html"><h3>Examples</h3><p>Complete scripts — every one runs against the current engine in CI.</p></a>
+  <a class="card" href="spec.html"><h3>Specification</h3><p>The normative language definition, plus the conformance contract.</p></a>
+</div>
+
+<h2>Why another chart language?</h2>
+<p>theta-script is designed to run untrusted user scripts safely, identically,
+everywhere: <strong>no recursion, no unbounded loops, no I/O, no aggregate data
+structures</strong> beyond bounded arrays. Work per run is bounded by
+<code>bars × statements × loop-limit</code>, and the per-bar execution model
+evaluates incrementally — a live tick appends one bar of work, which is what a
+streaming backend wants.</p>
+<p>The same script produces bit-identical results in the browser (JavaScript
+reference), on the server (Rust core), and through the Python and Elixir
+bindings. That claim is enforced, not aspirational: every runtime replays a
+shared corpus of golden fixtures on every test run
+(<a href="conformance.html">how conformance works</a>).</p>
+
+<h2>Quick start</h2>
+<h3>JavaScript</h3>
+<pre><code>import { runScript } from 'theta-script';
+
+const result = runScript(source, bars, { timezone: 'America/New_York' });
+// result.plots / result.trades / result.strategy / result.error …</code></pre>
+<h3>Rust</h3>
+<pre><code>use theta_script::{bars_from_json, opts_from_json, run_script};
+
+let result = run_script(source, &amp;bars, opts);</code></pre>
+<h3>Python</h3>
+<pre><code>import json, theta_script
+
+result = json.loads(theta_script.run_script_json(source, json.dumps(bars), None))</code></pre>
+<h3>Elixir</h3>
+<pre><code>{:ok, result} = Jason.decode(ThetaScript.run_json(source, bars_json))</code></pre>
+<p>Bars are <code>{ date, open, high, low, close, volume }</code> with
+<code>date</code> in milliseconds since the Unix epoch. All four runtimes
+return the same <a href="spec.html#12-result-object">result object</a>.</p>
+
+</main>
+<footer>MIT licensed. Site generated from the repository's documentation of record
+(<code>js/src/docs.js</code>, <code>js/src/examples.js</code>, <code>spec/SPEC.md</code>)
+by <code>npm run docs:site</code>.</footer>
+</body>
+</html>
