@@ -3,6 +3,26 @@
   "version": "2.4.0",
   "description": "per-bar scripting language for chart studies and trade signals — JavaScript reference implementation",
   "license": "MIT",
+  "author": "Gunnar Rosenberg",
+  "homepage": "https://gunnarpdx.github.io/thetascript/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GunnarPDX/thetascript.git",
+    "directory": "js"
+  },
+  "bugs": {
+    "url": "https://github.com/GunnarPDX/thetascript/issues"
+  },
+  "keywords": [
+    "trading",
+    "charts",
+    "indicators",
+    "technical-analysis",
+    "backtesting",
+    "scripting-language",
+    "ohlcv",
+    "finance"
+  ],
   "type": "module",
   "main": "./src/interpreter.js",
   "exports": {
@@ -19,7 +39,8 @@
   "scripts": {
     "test": "jest",
     "conformance:update": "UPDATE_CONFORMANCE=1 jest conformance",
-    "docs:site": "node scripts/build-docs-site.mjs"
+    "docs:site": "node scripts/build-docs-site.mjs",
+    "prepublishOnly": "jest"
   },
   "jest": {
     "testEnvironment": "node",
