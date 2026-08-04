@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-bad-period",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plot(sma(close, \"9\"))\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "sma: expected a number"
+  }
+}

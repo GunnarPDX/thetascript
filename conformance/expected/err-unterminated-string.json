@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-unterminated-string",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plot(close, color=\"#fff\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 2: unterminated string"
+  }
+}

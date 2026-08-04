@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-dup-kwarg",
+  "tape": "single",
+  "opts": null,
+  "script": "plot(close, color=\"#fff\", color=\"#000\")\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: duplicate argument 'color'"
+  }
+}

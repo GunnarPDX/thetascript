@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-unknown-function",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plot(smaa(close, 5))\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: unknown function 'smaa'"
+  }
+}

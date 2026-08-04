@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-trade-price-kind-change",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plotbuy(close > open, price=close > open ? \"open\" : \"high\")\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: plotbuy price must not change between bars"
+  }
+}

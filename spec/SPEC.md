@@ -1,0 +1,732 @@
+# theta-script language specification
+
+**Version 2.4.0** (`LANG_VERSION` in `interpreter.js`; every conformance
+fixture records the version it was generated under)
+
+A small language for chart studies and trade-signal
+scripts, executed **once per bar**. This document is the normative
+definition; the JavaScript interpreter in this directory is the reference
+implementation, and the fixtures under
+[`conformance/`](conformance/README.md) are the executable contract a port
+must satisfy.
+
+```
+study("Cross Strategy", overlay=true)
+fast = ema(close, 9)
+slow = ema(close, 21)
+plot(fast, color="#22d3ee")
+plot(slow, color="#f59e0b", width=2)
+var entries = 0
+if crossover(fast, slow)
+    entries := entries + 1
+strategy.buy(crossover(fast, slow), 10, trailing=2)
+strategy.sell(crossunder(fast, slow), 10)
+alertcondition(crossover(fast, slow), message="cross up")
+```
+
+Design constraints that keep the language portable and safe on untrusted
+input: **no recursion, no unbounded loops, no I/O, no aggregate data
+structures**. Work per run is bounded by
+`bars × statements × loop-limit`, and the per-bar model evaluates
+incrementally — a live tick appends one bar of work, which is what a
+streaming backend wants.
+
+Version 1 (the whole-series model) is superseded: v2 reproduces v1 scripts
+byte-for-byte (the v1 conformance corpus regenerated identically under this
+engine) with three deliberate changes, listed in §14.
+
+## 1. Execution model
+
+A script runs against an ordered array of **bars** and produces one **result
+object**. Bars are:
+
+```
+{ date, open, high, low, close, volume }
+```
+
+`date` is milliseconds since the Unix epoch; `volume` may be absent (read
+as 0). Let `n` be the bar count.
+
+**The script body executes once per bar**, `i = 0 … n-1`, top to bottom.
+Sources (`close`, `time`, …) read bar `i`; plain assignments recompute per
+bar; `var` declarations initialize on the first bar and persist; draw calls
+contribute bar `i`'s slice of their output; indicator builtins advance
+per-call-site incremental state. After each bar, every top-level variable's
+current value is committed to its history (read via `x[k]`).
+
+With `n = 0`, the body runs exactly once as a **declaration pass**: every
+source reads `na`, per-bar output arrays stay empty, but declarations
+(plots, inputs, `study()`, strategy presence) are still recorded so hosts
+can render controls for an empty tape.
+
+Host options beyond bars (all optional): `inputs` (override map, §9),
+`timezone` (IANA session zone, default `America/New_York`; `'local'`
+resolves to the host zone), `session` (`{ open: 'HH:MM', close: 'HH:MM' }`,
+default `09:30`/`16:00`). Execution is deterministic: same script + bars +
+options ⇒ identical result on any host.
+
+## 2. Lexical structure
+
+- **Comments**: `//` to end of line. The pragma `//@version=N` anywhere in
+  the source is recorded for future breaking changes (currently
+  informative).
+- **Newlines** terminate statements — except inside an unclosed `(` or `[`,
+  where they are plain whitespace (multi-line calls).
+- **Indentation** delimits blocks (`if`/`for`/multi-line function bodies):
+  a block opens with a line indented deeper than its header and closes on
+  the return to a shallower column (tab counts as 4). Dedents must return
+  to an enclosing indentation level. Blank and comment-only lines are
+  ignored entirely.
+- **Numbers**: a digit run with at most one `.`; no exponent, no sign.
+- **Strings**: `"…"` or `'…'`; no escapes; any character except the opening
+  quote is literal (including newlines).
+- **Identifiers**: `[A-Za-z_][A-Za-z0-9_.]*` — dots are part of the name
+  (`input.int`, `strategy.buy`, `barstate.islast`).
+- **Reserved words**: `var if else for while switch break continue` may not
+  be used as identifiers; `to by else` are recognized contextually in their
+  constructs. `and or
+  not` are operators; `true false` are the numbers 1/0; `na` is the NaN
+  literal unless immediately followed by `(` (the is-na builtin).
+- **Operators**: `== != <= >= := =>` (two-char, matched first), then
+  `+ - * / % < > ( ) [ ] , = ? :`.
+
+## 3. Grammar
+
+```ebnf
+program    = { NL } , { statement } ;
+statement  = "var" IDENT "=" expr
+           | IDENT ":=" expr
+           | IDENT "=" expr
+           | IDENT "(" [ IDENT { "," IDENT } ] ")" "=>" fnbody   (* top level only *)
+           | "if" expr block { "else" "if" expr block } [ "else" block ]
+           | "for" IDENT "=" expr "to" expr [ "by" expr ] block
+           | "while" expr block
+           | "switch" expr NL INDENT { arm } DEDENT
+           | "break" | "continue"
+           | expr ;
+arm        = [ expr ] "=>" statement NL ;      (* single-line arm; bare "=>" is the default *)
+fnbody     = expr | block ;                    (* block's last statement must be an expr *)
+block      = NL INDENT { statement } DEDENT ;
+
+expr       = ternary ;
+ternary    = or_expr [ "?" expr ":" expr ] ;   (* right-associative *)
+or_expr    = and_expr { "or" and_expr } ;
+and_expr   = eq_expr { "and" eq_expr } ;
+eq_expr    = rel_expr { ( "==" | "!=" ) rel_expr } ;
+rel_expr   = add_expr { ( "<" | "<=" | ">" | ">=" ) add_expr } ;
+add_expr   = mul_expr { ( "+" | "-" ) mul_expr } ;
+mul_expr   = unary { ( "*" | "/" | "%" ) unary } ;
+unary      = "-" unary | "not" unary | postfix ;
+postfix    = primary { "[" expr "]" } ;
+primary    = NUMBER | STRING | "(" expr ")"
+           | IDENT "(" [ arg { "," arg } ] ")" | IDENT ;
+arg        = IDENT "=" expr | expr ;
+```
+
+Statements on one line need a newline terminator; statements ending in a
+block are self-terminating. Binary operators are left-associative; the
+ternary condition parses at `or_expr` level, branches are full `expr`.
+
+**Validation** (parse-time errors): declaration calls (§10's draw functions,
+`input.*`, `study`, `strategy.buy/sell/config`, `alertcondition`,
+`line.new`/`label.new`/`box.new`, `security`) must appear in top-level
+statements — never inside `if`/`for`/`while`/`switch` blocks or function
+bodies, and never inside a `while` condition or a `switch` arm test (those
+expressions run repeatedly or conditionally, which would break every
+once-per-bar declaration invariant; `if` conditions, `for` bounds and
+`switch` subjects evaluate exactly once per bar and are fine).
+`break`/`continue` must appear inside a loop body. `security`'s
+argument expressions may not contain any of those top-level-only calls (so
+`security` never nests). Function definitions are top-level only, may not
+be recursive (directly or mutually), and take positional arguments only;
+parameter lists are comma-separated with no trailing comma and no duplicate
+names. Duplicate keyword arguments in any call are an error. Expression
+nesting is capped (reference: 500 levels) so parser and evaluator recursion
+stay bounded on adversarial input.
+
+## 4. Types and values
+
+Per-bar values: **number** (IEEE-754 binary64; booleans are 1/0, `na` is
+NaN), **string**, **plot-ref** (opaque, returned by `plot()`/`hline()`,
+accepted by `fill()`), and **array** (§7a). Arrays are mutable *reference*
+values: assignment and function passing share the same array; `==` compares
+reference identity; arrays are truthy; in numeric contexts they read as NaN,
+and as `infopanel` values they display as na.
+
+**Truthiness**: not `0`, not `NaN`, not the empty string.
+
+## 5. Statements, scope and state
+
+- **`x = expr`** at top level declares/rebinds a per-bar script variable;
+  executing again next bar overwrites it. Assigning to a source or other
+  built-in name is an error. Inside a block, `=` declares a **block-local**
+  (discarded when the block ends) — use `:=` to write through to an outer
+  variable.
+- **`var x = expr`** (top level or block) evaluates the initializer only on
+  the first executed bar and persists the value across bars. Rebinding a
+  `var` with plain `=` is an error; use `:=`. Declaring `var x` when a
+  plain `x = …` (or a built-in) already owns the name is an immediate
+  error. Block-scope `var`s are keyed to their declaration site (and
+  function-call context).
+- **`x := expr`** assigns the nearest binding: enclosing block locals
+  outward, then the script scope. Reassigning an undeclared name or a
+  built-in is an error.
+- **`if cond` / `else if` / `else`** executes at most one branch's block.
+  Statements in untaken branches do not run — see §6 for what that means
+  for indicator state.
+- **`for i = a to b [by s]`** iterates inclusively (`s` defaults 1, may be
+  negative, must not be 0; non-number bounds error; NaN bounds iterate zero
+  times). A run's total loop iterations per bar are capped (reference:
+  100 000) — exceeding the cap is a runtime error.
+- **`while cond`** re-evaluates `cond` before each iteration and runs the
+  block while it is truthy. Iterations count against the same per-bar loop
+  cap as `for`. **Block-local lifetime differs between the loop forms**
+  (long-standing, now normative): a `while` body opens a fresh block scope
+  every iteration, while a `for` body shares one block scope across all of
+  that bar's iterations — a `for` local assigned in iteration 1 is still
+  readable in iteration 2. Assigning to the `for` loop variable with `=`
+  inside the body detaches it from the loop counter for the remaining
+  iterations; use another name.
+- **`break` / `continue`** exit / restart the nearest enclosing `for` or
+  `while` loop. They propagate out of nested `if`/`switch` statements but
+  never across a loop or function boundary.
+- **`switch subj`** takes an indented body of single-line arms
+  `test => statement`; a bare `=> statement` is the default arm. Tests
+  evaluate in order (conditionally — like statement blocks) until one
+  compares equal to the subject under §6 `==` semantics (same-type strict;
+  NaN matches nothing); that arm's statement runs and the switch ends. No
+  match and no default arm runs nothing.
+- **`f(a, b) => expr`** or with an indented body whose last statement is
+  the return expression. Parameters and body locals are per-call scoped,
+  and the function body is a **scope barrier**: it sees its own locals and
+  the script scope, never the caller's block-locals (reads and `:=` both
+  stop at the barrier).
+  **Each syntactic call site owns independent state** for every stateful
+  builtin in the body — `smooth(x) => ema(x, 5)` used on two series keeps
+  two EMAs. Wrong arity is an error.
+
+**History `e[k]`**: `k` is a per-bar scalar (rounded; non-number errors,
+may vary bar to bar). For a plain variable or source, `x[k]` reads the
+committed value from bar `i-k` (`x[0]` is the current value); out-of-range
+or negative `k` yields `na`. For any other expression, the engine buffers
+the expression's per-bar values at that call site; bars where the
+expression didn't execute read `na`.
+
+## 6. Expressions
+
+**Eagerness rule**: expressions always evaluate all their operands — `?:`
+evaluates both branches and selects, `and`/`or` evaluate both sides (no
+short-circuit), `iff` evaluates all three arguments. Only *statement*
+blocks (`if`/`for`) execute conditionally. In a call, **keyword arguments
+evaluate before positional arguments** (each group left to right) —
+side-effectful arguments observe that order. Consequence: indicator builtins
+inside expressions advance every bar and stay gap-free; builtins inside
+`if`/`for` bodies only advance when the block runs (their windows skip the
+other bars) — put indicators in expressions, decisions in statements.
+
+| op | semantics |
+|---|---|
+| `+` | IEEE addition — if either operand is a string, concatenation (numbers render via the ECMAScript shortest-round-trip algorithm; NaN renders `"NaN"`, arrays render `"[array]"`). With no string operand, non-number operands (arrays, plot-refs) read as NaN |
+| `- * /` | IEEE arithmetic; `x/0` ±Infinity, `0/0` NaN |
+| `%` | JS remainder — sign of the dividend (`-5 % 3 = -2`), never floored modulo |
+| `< <= > >=` | 1/0; comparisons involving NaN are 0 |
+| `== !=` | strict same-type equality; `100 == "100"` is 0; NaN equals nothing |
+| `and or` | 1/0 by truthiness, both sides evaluated |
+| `not`, unary `-` | logical (1/0) / numeric negation |
+
+Non-`+`/`==`/`!=` operators on strings are undefined behavior.
+
+## 7. Builtin functions
+
+Instantiated **per call site**, fed once per executed bar. Length/period
+arguments are validated (`max(1, round(p))`, non-number errors with
+`<name>: expected a number`, periods above 100 000 error — bounded work
+and allocation per call site) and **locked at the first call** — a length
+that changes between bars is an error. Series-fed builtins coerce
+non-number series values to NaN before feeding their stream (a string
+would otherwise corrupt accumulators). "NaN-poisoned window" = output is
+NaN while any of the last `p` inputs is NaN and before the first full
+window.
+
+Series-fed — `fn(series, period)`:
+
+| function | definition |
+|---|---|
+| `sma wma` | simple / linearly-weighted mean (weights `1..p`, newest `p`); non-finite values poison the window |
+| `ema` | `e ← α·v + (1-α)·e`, `α = 2/(p+1)`, seeded with the first finite value; NaN inputs emit NaN without advancing |
+| `wilders` | `ema` with `α = 1/p` |
+| `dema tema` | `2e₁−e₂`, `3e₁−3e₂+e₃` over stacked EMAs |
+| `tma` | `sma(sma(v, ⌈(p+1)/2⌉), ⌊p/2⌋+1)` |
+| `hull` | `wma(2·wma(v,⌊p/2⌋) − wma(v,p), round(√p))` |
+| `rsi` | Wilder's RSI over consecutive finite values (non-finite inputs are gaps — carried past, like `ema`); first `p` deltas seed the averages, then `avg ← (avg·(p-1)+x)/p`; flat → 50, lossless → 100 |
+| `stdev` | population σ via rolling `Σv, Σv²`; poisoned by **non-finite** window values (±Infinity would corrupt the rolling sums permanently); variance ≤ `(Σv²/p)·1e-12` reads 0 |
+| `sum` | rolling sum, poisoned by non-finite window values like `stdev` |
+| `highest lowest` | rolling max / min, NaN-poisoned (±Infinity is orderable and passes through) |
+| `highestbars lowestbars` | bars back to the window extreme (0 = current; ties → most recent) |
+| `change(s, p=1)` / `mom` | `s[i] − s[i−p]`, NaN for `i < p` |
+| `offset` | `s[i−p]`, NaN for `i < p` |
+| `roc` | `100·(s[i]−s[i−p])/s[i−p]`, NaN during warmup or zero base |
+| `linreg` | least-squares fit over the window (x = 0..p−1), evaluated at the newest bar; NaN-poisoned |
+| `rising falling` | 1 iff strictly rose/fell on each of the last `p` steps; NaN breaks the run |
+| `crossover(a,b)` | 1 iff not the first call ∧ `a > b` ∧ previously `a ≤ b` (NaN comparisons false) |
+| `crossunder cross` | mirror; either — both underlying streams advance every bar |
+| `cum` | running sum over the whole tape; NaN and non-numbers add 0 |
+| `valuewhen(c,s)` | `s` at the most recent truthy `c` (inclusive); NaN before the first |
+| `barssince(c)` | bars since truthy `c` (0 on the bar); NaN before the first |
+| `correlation(a,b,p)` | Pearson r over the window (population moments); NaN-poisoned; a zero-variance side reads NaN |
+| `percentile(s,p,q)` / `median(s,p)` | sorted-window linear-interpolation percentile (`q` default 50, clamped to [0,100], locked); `median` = `percentile(s,p,50)`; NaN-poisoned |
+| `alma(s,p,offset,sigma)` | Arnaud Legoux MA — gaussian weights centered at `offset·(p−1)` (default 0.85), width `p/sigma` (default 6); parameters locked; NaN-poisoned |
+
+Bar-fed (read OHLCV directly): `tr()` (bar 0 `high−low`, else
+`max(h−l, |h−pc|, |l−pc|)`), `atr(p)` = `wilders(tr, p)`, `stoch(p)` =
+`100·(c−ll)/(hh−ll)` over the bar range (flat range → NaN), `mfi(p)`
+(typical-price × volume flows, RSI-style ratio; flat → 50), `obv()`
+(cumulative signed volume from 0), `vwap([src])` (Σ price·volume / Σ volume,
+`src` default `hlc3`, **reset when the session-timezone calendar day
+changes**), `pivothigh(l, r)` / `pivotlow(l, r)` (the center value of an
+`l+1+r` window once it is the strict extreme, emitted when confirmed, else
+NaN).
+
+Bar-fed, round 2 (all lengths/parameters locked at the first call):
+
+- `diplus(p)` / `diminus(p)` / `adx(p)` — Wilder's directional system:
+  from bar 1 on, ±DM from consecutive bar deltas and TR are each smoothed
+  with `rma` (`s ← (1/p)·v + (1−1/p)·s`, seeded with the first value);
+  DI = `100·DM_s/TR_s` (NaN while `TR_s ≤ 0`);
+  DX = `100·|DI⁺−DI⁻|/(DI⁺+DI⁻)` (0 when the sum is 0); ADX = `rma` of DX.
+  Bar 0 is NaN. The three functions share one definition but each call
+  site owns its own state.
+- `aroonup(p)` / `aroondown(p)` — `100·(p − bars-since-extreme)/p` over the
+  last `p+1` bars (highest high / lowest low, ties → most recent).
+- `sar([start], [inc], [max])` — classic parabolic SAR (defaults
+  0.02/0.02/0.2): first bar NaN, second bar seeds trend from the close
+  delta; SAR advances `sar ← sar + af·(ep − sar)`, clamps to the prior two
+  bars' extreme, reverses to the EP when penetrated.
+- `supertrend(p, [mult])` / `supertrend_dir(p, [mult])` — Wilder-ATR bands
+  (`mult` default 3, locked) around the bar midpoint `hl2` with the
+  standard band-ratchet (a band only tightens unless the prior close broke
+  it); direction starts up and flips when the close crosses the active
+  band. `supertrend` is the active band line (lower in an uptrend),
+  `supertrend_dir` is `+1` up / `−1` down; both NaN until ATR seeds.
+- `cci(p)` — `(tp − mean)/(0.015·md)` over typical price `hlc3`, where
+  `mean`/`md` are the window mean and mean absolute deviation; NaN during
+  warmup, when the window holds a NaN, or when `md` is 0.
+- `willr(p)` — Williams %R: `−100·(hh − c)/(hh − ll)` over the last `p`
+  bars; NaN while the range isn't positive (warmup, NaN, flat).
+
+Elementwise/stateless: `abs sqrt log exp round floor ceil sign pow`,
+`sin cos tan asin acos atan` and `atan2(y, x)` (IEEE, transcendental
+tolerance applies), `min max avg` (variadic, pairwise left reduce; at
+least one argument or it errors, non-number arguments read as NaN),
+`nz(s, v=0)`, `na(s)`, `iff(c, a, b)` (a missing selected branch reads
+na), `tostring(x[, precision])`
+(precision clamps 0–8 → `toFixed`; otherwise shortest round-trip; NaN →
+`"NaN"`), and the §8 time functions. The pre-bound constant `pi` is
+IEEE-754 π.
+
+**Float determinism**: accumulation orders above are normative, so
+arithmetic is bit-reproducible; transcendental primitives get 1e-9 relative
+tolerance in conformance (see conformance/README.md).
+
+### 7a. Arrays (`array.*`)
+
+`array.new([size], [initial])` returns a new array of `size` elements
+(default 0) filled with `initial` (default na). Sizes above 100 000 error,
+and `array.push`/`array.unshift` error once an array holds 100 000
+elements — an unbounded allocation is a host OOM no error path survives. **Persistence follows
+variable semantics**: `var a = array.new()` creates one array on the first
+bar and keeps it; a plain `a = array.new()` creates a fresh array every bar.
+Elements are any scalar value.
+
+| function | definition |
+|---|---|
+| `array.push(a, v)` / `array.unshift(a, v)` | append / prepend (missing `v` is na); returns 0 |
+| `array.pop(a)` / `array.shift(a)` | remove and return the last / first element; na when empty |
+| `array.get(a, i)` | element at rounded index `i`; **na when out of range** (like history access) |
+| `array.set(a, i, v)` | write at rounded index; out-of-range is a runtime **error** |
+| `array.size(a)` | element count |
+| `array.first(a)` / `array.last(a)` | na when empty |
+| `array.clear(a)` | empty the array; returns 0 |
+| `array.sum/avg/min/max(a)` | numeric aggregates **skipping non-numbers and na**; na when nothing remains |
+
+Passing a non-array where one is expected is a runtime error.
+`tostring(array)` renders `"[array]"`; other coercions are UB.
+
+### 7b. Strings (`str.*`)
+
+Stateless; every argument is first coerced to a string with the `+`
+concatenation rules (shortest round-trip numbers, `"NaN"`, `"[array]"`).
+
+| function | definition |
+|---|---|
+| `str.format(fmt, a0, a1, …)` | replaces `{0}`, `{1}`, … with the coerced arguments; an index past the argument list renders `""`; anything not matching `{digits}` is literal |
+| `str.contains(s, sub)` | 1/0 substring test |
+| `str.replace(s, from, to)` | replaces **all** occurrences; empty `from` returns `s` unchanged |
+| `str.upper(s)` / `str.lower(s)` | Unicode default case mapping |
+| `str.length(s)` | length in UTF-16 code units |
+| `str.split(s, sep)` | array of the pieces; empty `sep` yields `[s]` (whole string — per-character splitting is deliberately unspecified) |
+
+### 7c. Multi-timeframe: `security(tf, expr)`
+
+`security("5m", …)` evaluates an expression against the same symbol's bars
+**aggregated to a higher timeframe**, built internally from the input tape
+(no host data feed involved). `tf` is `"<count>m"`, `"<count>h"`, `"1d"` or
+`"1w"` (locked at the first call; the count must be ≥ 1, and other counts
+for d/w are errors). Bars
+bucket by `⌊time / bucket-ms⌋` for minute/hour timeframes, or by the §7d
+session-day / week anchor keys for `"1d"`/`"1w"`.
+
+**Confirmed buckets only (non-repainting)**: while a bucket is still
+filling, `security` keeps returning the value computed from the last
+*completed* bucket — NaN until the first bucket completes. When a new
+bucket opens, the finished one (open = first bar's open, high/low =
+extremes, close = last close, volume = summed, time = first bar's time) is
+appended to the aggregate series and `expr` is re-evaluated at its last
+index.
+
+Inside `expr`, sources read the aggregate bar (`bar_index` is the
+aggregate index; `hl2 hlc3 ohlc4` derive from it), and history/indicator
+builtins run over the aggregate series in an **isolated state context** —
+`ema(close, 9)` inside and outside `security` are independent streams.
+§3's validation keeps declarations (and nested `security`) out of `expr`;
+user-function calls inside `expr` are fine.
+
+### 7d. Anchored vwap
+
+`vwap([src], [anchor])` — cumulative `Σ price·volume / Σ volume`, `src`
+default `hlc3`, reset when the anchor period rolls over **in the session
+timezone**: `"session"` (default; calendar day), `"week"` (Monday-start:
+key = ⌊(wall-days-since-epoch + 3) / 7⌋), or `"month"` (calendar month).
+A **string first argument is the anchor** with the default source —
+`vwap("week")` is weekly vwap over `hlc3`. The anchor is locked at the
+first call like every other stream parameter; a non-string anchor
+argument reads as `"session"`.
+
+## 8. Time model and sources
+
+All calendar semantics use the **session timezone** (§1); implementations
+need an IANA tz database. `timestamp("YYYY-MM-DD[ HH:MM[:SS]]")` (space or
+`T`) and `timestamp(y, m, d, h, mi)` read wall time in that zone; the
+wall→epoch conversion is the two-pass offset refinement
+(`t₁ = wall − off(wall)`, `t = wall − off(t₁)`). Calendar extractors
+`year month dayofmonth dayofweek hour minute` are elementwise over ms
+timestamps in the session zone (`dayofweek` 0=Sunday); NaN in ⇒ NaN out.
+
+Pre-bound sources: `open high low close volume`, `hl2 hlc3 ohlc4`,
+`bar_index`, `time` (ms), and scalars `current_datetime` (latest bar's
+time), `date_today` (session-timezone midnight of that day),
+`market_open` / `market_close` (session bounds on that day),
+`barstate.isfirst` / `barstate.islast` (1 on bar 0 / bar n−1), plus the
+strategy state of §11. All "now" scalars derive from the latest bar, never
+the host clock; with `n = 0` they are NaN.
+
+## 9. Input declarations
+
+`input.int` / `input.float` (alias `input`) / `input.bool` /
+`input.string` / `input.time`. Declarations execute on the **first bar
+only** (their argument expressions must be constants); each call site
+appends a record to `result.inputs` and returns the locked value on every
+bar.
+
+Labels come from `title=` or the second positional string, else
+`"Input <k>"`; duplicate labels get `" (2)"`, `" (3)"`… suffixes, bumped
+until the key is actually unused — a literal label `"X (2)"` never
+collides with the generated suffix for a later duplicate `"X"` (the
+record's `key` is the override-lookup key). Values: the typed host override
+under that key, else the default — `int` rounds then clamps to
+`minval`/`maxval` (clamping applies to defaults too); `bool` normalizes to
+1/0; `string` takes `options="a,b,c"` (comma-separated) and falls back to
+the default when the override isn't listed; `time` parses per §8 (record
+carries the raw string as `text`). Record layout:
+`{ key, label, type, default, value, …type-specific…, tooltip }` with
+type-specific keys `minval maxval step` (int/float), `options` (string),
+`text` (time).
+
+## 10. Draw functions
+
+Top-level-only calls, executed once per bar: the record is created on the
+first bar and then fed per-bar data. Style arguments are read on the first
+bar; the ones marked **locked** below error if they change on a later bar
+(`plot` color/width/title/style/linestyle, `hline` value, `fill`'s
+plot-ref-vs-number classification, `plotshape`/`plotbuy`/`plotsell` color
+and `price` kind, `alertcondition` title/message, strategy order kwargs
+validated per call). The rest — `hline` color/width/title, `fill`
+color/opacity, `plotshape` shape/location/size, `bgcolor` opacity,
+`infopanel` title/color/precision — are **first-bar-wins**: later values
+are silently ignored, not errors. Colors are opaque strings; the default plot
+palette cycles `#22d3ee #f59e0b #a78bfa #22c55e #ec4899 #38bdf8`.
+
+- **`study(title, overlay=, description=, title=)`** — result metadata,
+  read on the first bar. Returns 0.
+- **`plot(v, [colorOrTitle], [width], color= title= width= style=
+  linestyle=)`** — appends `{ key: "p<i>", title, color, width, style,
+  lineStyle, colorSpan, widthSpan, values }`, returns a plot-ref. Style ∈
+  `line histogram area stepline circles` (default `line`); linestyle ∈
+  `solid dashed dotted`. Per bar, a number lands in `values[i]` (anything
+  else stays `na`). `colorSpan`/`widthSpan` are `[start, end)` source
+  offsets when the value was a plain literal, for editor restyling.
+- **`hline(v, color= width= title=)`** — constant plot-shaped record
+  (defaults `#8f8f98`, width 1, no span/style keys), returns a plot-ref;
+  the value is locked.
+- **`fill(a, b, color= opacity=)`** — `a`/`b` are plot-refs (locked
+  classification, resolved to those plots' values) or per-bar
+  numbers; < 2 args errors. Defaults `#3b82f6`, opacity 0.12.
+- **`plotshape(cond, shape= location= color= size=)`** — per bar records
+  the raw number (or truthiness 1/0). Shapes `triangleup triangledown
+  circle square cross`; locations `abovebar belowbar absolute`; default
+  color `#22c55e` iff `location="belowbar"` was passed, else `#ef4444`;
+  size 4.
+- **`plotbuy(cond, [qty], qty= color= price=)` / `plotsell`** — trade
+  markers `{ values, qty, side, color, priceSource, prices? }`; qty defaults
+  1, non-numbers become NaN; color defaults **null** (host theme decides).
+  `price=` anchors the marker: one of `"open" "high" "low" "close"`
+  (locked; default `"close"`, recorded as `priceSource`), or a per-bar
+  number — then `priceSource` is `"custom"` and the record carries a
+  `prices` array (na where the value wasn't a number; hosts fall back to
+  close). The argument's *kind* (source name vs number) is locked; an
+  unknown source string is an error.
+- **`infopanel(v, [title], title= color= precision=)`** — the record keeps
+  the **latest executed bar's** value (strings pass through; `na` on an
+  empty tape) and color (string or null); precision clamps 0–8, default 2.
+- **`barcolor(color, when=)` / `bgcolor(color, when=, opacity=)`** —
+  per-bar string-or-null arrays; `when` gates bars; bgcolor opacity locked,
+  default 0.1.
+- **`alertcondition(cond, title= message=)`** — appends
+  `{ title ("Alert <k>" default), message (string or null), values }` with
+  1 on firing bars. A message containing `{{name}}` placeholders also gets
+  a per-bar `messages` array (null except on firing bars): placeholders
+  `open high low close volume time bar_index` render the firing bar's
+  value via ECMAScript `String(v)`; unknown names stay literal.
+- **`line.new(x1, y1, x2, y2, when= color= width= style=)` /
+  `label.new(x, y, text, when= color= textcolor= style= size=)` /
+  `box.new(x1, y1, x2, y2, when= color= bgcolor= width=)`** — **drawing
+  objects**, the one draw family that creates a record per *call* rather
+  than per call site. x-coordinates are bar indexes, y are prices. A call
+  appends one object each bar it executes — gate with `when=` (skipped
+  when falsy). Calls with any non-finite coordinate are skipped. Each of
+  the three pools is capped at **500 objects — the oldest is dropped**
+  when a new one exceeds the cap. Defaults: color `#8f8f98`, width 1,
+  line style `solid`; label text coerces numbers to strings (else `""`),
+  `textcolor` null, style `"down"`, size 10; box `bgcolor` null. Objects
+  are creation-only (no handles, no setters); styles are per-object, not
+  locked. Returns 0.
+- **`strategy.config(initial_capital= commission_percent= commission_cash=
+  slippage= pyramiding=)`** — backtest configuration, read on the first
+  executed call and ignored afterwards; see §11. Marks the script as a
+  strategy for the draws-nothing rule. Returns 0.
+
+**Draws-nothing rule**: if after the run `plots shapes trades panel
+barColors bgColors lines labels boxes` are all empty AND no alert or
+strategy call exists, the script errors.
+
+## 11. Strategy engine
+
+`strategy.buy(when, [qty], qty= qty_type= limit= stop= expires= stop_loss=
+take_profit= trailing=)` and `strategy.sell(...)` place orders on bars
+where `when` is truthy. Without `limit=`/`stop=` the order fills **at the
+close** of the signal bar. The engine maintains one netted position: an
+opposite-side fill first closes open quantity at the position's
+volume-weighted average price and realizes P&L; any remainder opens the
+other way.
+
+**Sizing** (`qty` defaults 1; a non-positive/NaN resolved quantity is
+ignored): `qty_type` is `"shares"` (default; `qty` is the share count),
+`"cash"` (`qty / fill-price` shares), or `"percent_of_equity"`
+(`equity·qty% / fill-price`, equity = capital equity at the current
+close). Any other value is a runtime error.
+
+**Pending orders** (`limit=` price or `stop=` price — both at once is an
+error; a non-finite price drops the order entirely rather than silently
+degrading to a market fill — a warmup-NaN limit must not buy at market):
+the call registers a working order **per call site**; a later signal from
+the same call replaces it. From the *next* bar on, before the
+body runs, a limit buy triggers when `low ≤ limit` and fills at
+`min(open, limit)` (sell: mirror above the market); a stop-entry buy
+triggers when `high ≥ stop` and fills at `max(open, stop)` (sell:
+mirror). `expires=` k (rounded, min 1) cancels an order still working
+more than k bars after placement. Protective-exit checks run before
+pending fills on each bar. Quantities resolve at trigger time.
+
+**Costs** (`strategy.config`, §10 — defaults: capital 10 000, zero
+costs): `slippage` is a price offset that always works against the fill
+(buys fill higher, sells lower); each fill (entry and exit) is charged
+`commission_cash + commission_percent%·qty·price`, accumulated in
+`summary.commissions` (never in per-trade `pnl`). Costs clamp at 0 (a
+negative slippage would be a scriptable rebate) and non-positive
+`initial_capital` is ignored. `pyramiding` caps same-direction entries
+per position episode (min 1; default unlimited); capped entries are
+dropped.
+
+Protective exits are price **offsets from the average entry**, captured at
+entry: on each later bar, *before* the body runs, the engine checks —
+stop-loss / trailing stop first (long: `low ≤ stop` exits at
+`min(open, stop)`; trailing stop = favorable extreme − offset), then
+take-profit (long: `high ≥ target` exits at `max(open, target)`). Stop
+beats target inside one bar. The trailing extreme starts at the entry
+fill price and folds in the high/low of **completed bars after the entry
+bar** only — the entry bar's own range happened before (or straddling)
+the fill and never arms the trail. A pyramiding add ratchets the extreme
+toward its fill price but never loosens it.
+
+Script-visible state (start-of-bar, after protective exits, marked at the
+current close): `strategy.position_size` (±, 0 flat),
+`strategy.avg_price` (na flat), `strategy.open_pnl`,
+`strategy.realized_pnl`, `strategy.equity`, `strategy.trades`,
+`strategy.wins`, `strategy.losses`.
+
+The result's `strategy` object (null when no strategy call exists) carries
+the ledger — `trades: [{ side, entryBar, entryPrice, exitBar, exitPrice,
+qty, pnl, reason: 'signal'|'stop'|'target' }]` (prices are post-slippage;
+`pnl` excludes commissions), `open` (position or null) — and a `summary`:
+
+- `realized openPnl netProfit trades wins losses winRate grossProfit
+  grossLoss profitFactor maxDrawdown` — P&L-space stats as before
+  (equity = realized + open P&L marked at each close; profitFactor
+  Infinity when lossless), except `netProfit` is now
+  `realized + openPnl − commissions`.
+- `initialCapital commissions endEquity returnPct` — capital-space:
+  `endEquity = initialCapital + realized − commissions + openPnl`.
+- `cagrPct` — `((endEquity/initialCapital)^(1/years) − 1)·100` with
+  `years` = tape span / 365.25 days; NaN when the span, capital, or end
+  equity isn't positive.
+- `sharpe` — mean/σ of **per-bar** capital-equity returns (population σ,
+  unannualized; each return divides by |previous equity| so a recovery
+  from below zero counts positive); NaN with < 2 returns or zero σ.
+- `maxDrawdownPct` — deepest peak-to-trough of the capital equity curve,
+  percent of the peak (peaks ≤ 0 don't count).
+
+Fills also emit plotbuy/plotsell-shaped marker records (color null,
+priceSource `"close"`) into `result.trades`, so hosts render strategies
+with the marker pipeline.
+
+## 12. Result object
+
+```
+{
+  title, overlay, description,
+  plots:  [{ key, title, color, width, style, lineStyle, colorSpan, widthSpan, values }],
+  fills:  [{ a, b, color, opacity }],
+  shapes: [{ values, shape, location, color, size }],
+  trades: [{ values, qty, side, color }],
+  panel:  [{ title, value, color, precision }],
+  barColors: [ (string|null)[] ],
+  bgColors:  [{ colors, opacity }],
+  inputs: [ §9 records ],
+  alerts: [{ title, message, values, messages? }],
+  lines:  [{ x1, y1, x2, y2, color, width, lineStyle }],
+  labels: [{ x, y, text, color, textColor, style, size }],
+  boxes:  [{ x1, y1, x2, y2, color, bgColor, width }],
+  strategy: §11 object | null,
+  error: string | null
+}
+```
+
+All per-bar arrays have length `n` (`lines`/`labels`/`boxes` are object
+pools, §10). JSON wire encoding: NaN → `null`,
+±Infinity → `"Infinity"`/`"-Infinity"`, −0 → `0`; absent optional record
+keys are omitted (never emitted as null)
+(see conformance/README.md).
+
+## 13. Errors
+
+All-or-nothing per run: on the first lexical/parse/validation/runtime
+error, `error` carries the message (prefixed `line <k>:` where known) and
+`plots fills shapes trades panel barColors bgColors alerts lines labels
+boxes` are emptied, `strategy` is null; `title overlay description inputs`
+keep what was recorded. Message text is informative; the error
+*conditions* are normative: §2–§3 syntax and validation errors (including
+`break`/`continue` outside a loop, top-level-only calls in blocks, and
+top-level-only calls inside `security` arguments); unknown
+variable/function; reserved-word misuse; non-number history offset or loop
+bound; zero loop step; loop-limit breach; recursion; wrong user-fn arity;
+assigning to built-ins or `var` names with `=`; `:=` to undeclared names;
+locked style/length/parameter changes (including `security`'s timeframe
+and `vwap`'s anchor); a malformed `security` timeframe; an order with both
+`limit=` and `stop=`; an unknown `qty_type`; series→scalar rule violations
+(`fill` arity); duplicate keyword arguments or function parameters;
+expression nesting beyond the cap; a period above 100 000; an array size
+or growth beyond 100 000 elements; `min`/`max`/`avg` with no arguments;
+declaring `var` over an existing plain variable or built-in; the
+draws-nothing rule.
+
+## 14. Versioning and change history
+
+**2.4.0** (corrective — behavior deltas are deliberate bug fixes; all
+previously *pinned* outputs regenerate identically except where noted):
+
+- **Scope barrier**: user-function bodies no longer see or `:=`-write the
+  caller's block-locals (§5) — previously they leaked dynamically.
+- **Validation**: top-level-only calls are now rejected inside `while`
+  conditions and `switch` arm tests (§3); function parameter lists must be
+  comma-separated, without duplicates; duplicate kwargs error; expression
+  nesting caps at 500; `security` counts must be ≥ 1; `var` over an
+  existing name errors immediately (was bar-count-dependent).
+- **Bounds**: periods cap at 100 000; array size/growth caps at 100 000 —
+  an unbounded `array.new` was a host OOM.
+- **Numerics**: `sum`/`stdev` windows and `rsi` gaps treat ±Infinity as
+  non-finite (previously one Infinity poisoned the stream forever);
+  series-fed builtins and `cum` coerce non-numbers to NaN; `min/max/avg`
+  coerce and require ≥ 1 argument; `iff` with a missing branch reads na;
+  `percentile` clamps q to [0,100]; numeric `+` with a non-number operand
+  is NaN, and string `+` renders arrays as `"[array]"` (so does `str.*`).
+- **`vwap("week")`**: a string first argument is the anchor (was silently
+  treated as the price source → all-NaN); the anchor now locks.
+- **Strategy**: trailing-stop anchors exclude the entry bar's range and
+  pyramiding adds never loosen them (**changes `v2-strategy-stops`
+  outputs**); non-finite `limit=`/`stop=` drops the order instead of
+  filling at market; costs clamp at 0, non-positive capital ignored;
+  sharpe divides by |prev equity|. Documented default capital corrected
+  to 10 000 (the engines always used 10 000).
+- **`timestamp(y, m, …)`** with any NaN component reads na (previously a
+  NaN month threw a script-fatal RangeError).
+- Kwarg-before-positional evaluation order, `for`/`while` block-local
+  lifetimes, and first-bar-wins style args are now documented (§5, §6,
+  §10) — behavior unchanged.
+
+**2.3.0** (additive): control flow — `while`, `switch`, `break`/`continue`
+(§3, §5); `security(tf, expr)` multi-timeframe evaluation (§7c); strategy
+depth — `strategy.config`, `qty_type` sizing, `limit=`/`stop=` pending
+orders with `expires=`, commission/slippage, pyramiding, and the
+capital-space summary fields `initialCapital commissions endEquity
+returnPct cagrPct sharpe maxDrawdownPct` (§11); drawing objects
+`line.new`/`label.new`/`box.new` with the 500-object cap (§10); indicator
+round 2 — `adx diplus diminus aroonup aroondown sar supertrend
+supertrend_dir cci willr correlation percentile median alma` (§7); trig
+`sin cos tan asin acos atan atan2` and the `pi` constant; the `str.*`
+namespace (§7b); `{{placeholder}}` alert messages (§10, `alerts[].messages`).
+All 2.2.0 fixtures regenerate identically apart from the version and the
+additive result keys.
+
+**2.2.0** (additive): `price=` on `plotbuy`/`plotsell` (§10); trade records
+gain `priceSource` (default `"close"`, including strategy-generated
+markers) and, for custom prices, `prices`.
+
+**2.1.0** (additive): arrays + the `array.*` namespace (§7a); `vwap` anchor
+argument (§7d); `tostring(array)` and infopanel array handling defined. All
+2.0.0 fixtures regenerate byte-identically apart from the recorded version.
+
+### v1 → v2 (2.0.0)
+
+Any observable behavior change requires a `LANG_VERSION` bump plus corpus
+regeneration in the same change. v2 is byte-compatible with v1 output for
+v1-feature scripts, with these deliberate deltas:
+
+1. Multi-line calls are legal (v1: parse error).
+2. History offsets may vary per bar (v1: series offsets were errors).
+3. Scalar-condition ternaries evaluate both branches (v1 evaluated only the
+   taken one — observable only via side effects in branches, which v1
+   corpus never exercised). Per-bar color values that *change* replace v1's
+   "series color" errors.
+
+## Appendix A — non-normative implementation notes
+
+- The reference interpreter caches parsed ASTs per source string; state
+  keys are `(function-call context, node id)`, deterministic per source.
+- The v1→v2 migration was validated by regenerating the v1 corpus under
+  the v2 engine and diffing byte-identically (modulo the additive
+  `alerts`/`strategy`/`style`/`lineStyle` keys and error message text).
+- Incremental streams (`streams.js`) intentionally replicate the batch
+  implementations' floating-point operation order (`math.js`, still used by
+  the chart's built-in studies) — change them together.
+- Backend hosts should cap source length and bar count; the language
+  bounds work per bar but not wall-clock time.

@@ -1,0 +1,47 @@
+{
+  "name": "theta-script",
+  "version": "2.4.0",
+  "description": "per-bar scripting language for chart studies and trade signals — JavaScript reference implementation",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/interpreter.js",
+  "exports": {
+    ".": "./src/interpreter.js",
+    "./docs": "./src/docs.js",
+    "./examples": "./src/examples.js",
+    "./math": "./src/math.js",
+    "./rewriteStyle": "./src/rewriteStyle.js",
+    "./builtins": "./src/builtins.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "jest",
+    "conformance:update": "UPDATE_CONFORMANCE=1 jest conformance"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    }
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
+  }
+}

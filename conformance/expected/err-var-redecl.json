@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-var-redecl",
+  "tape": "single",
+  "opts": null,
+  "script": "x = 1\nvar x = 2\nplot(x)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 2: variable 'x' is already declared"
+  }
+}

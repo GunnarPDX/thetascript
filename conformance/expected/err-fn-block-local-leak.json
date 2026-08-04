@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-fn-block-local-leak",
+  "tape": "wavy",
+  "opts": null,
+  "script": "g() => t + 1\nx = 0.0\nif close > 0\n    t = 5\n    x := g()\nplot(x)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: unknown variable 't'"
+  }
+}

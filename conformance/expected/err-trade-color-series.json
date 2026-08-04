@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-trade-color-series",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plotbuy(close > open, color=close > open ? \"#fff\" : \"#000\")\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: plotbuy color must not change between bars"
+  }
+}

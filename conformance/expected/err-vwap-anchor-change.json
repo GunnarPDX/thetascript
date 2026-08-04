@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-vwap-anchor-change",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plot(vwap(close, bar_index == 0 ? \"week\" : \"month\"))\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "vwap: anchor must not change between bars"
+  }
+}

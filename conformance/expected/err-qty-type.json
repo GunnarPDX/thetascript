@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-qty-type",
+  "tape": "wavy",
+  "opts": null,
+  "script": "strategy.buy(true, 1, qty_type=\"lots\")\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: qty_type must be \"shares\", \"cash\" or \"percent_of_equity\""
+  }
+}

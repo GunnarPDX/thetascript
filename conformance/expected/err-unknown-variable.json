@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-unknown-variable",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plot(closee)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: unknown variable 'closee'"
+  }
+}

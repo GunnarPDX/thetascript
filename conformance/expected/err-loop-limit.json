@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-loop-limit",
+  "tape": "single",
+  "opts": null,
+  "script": "x = 0.0\nfor k = 0 to 200000\n    x := x + 1\nplot(x)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 2: loop iteration limit exceeded"
+  }
+}

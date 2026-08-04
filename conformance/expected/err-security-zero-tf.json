@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-security-zero-tf",
+  "tape": "wavy",
+  "opts": null,
+  "script": "plot(security(\"0m\", close))\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: security timeframe must look like \"5m\", \"1h\", \"1d\" or \"1w\""
+  }
+}

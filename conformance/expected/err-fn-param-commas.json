@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-fn-param-commas",
+  "tape": "single",
+  "opts": null,
+  "script": "f(a b) => a + b\nplot(f(1, 2))\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: expected ')'"
+  }
+}

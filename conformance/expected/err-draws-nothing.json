@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-draws-nothing",
+  "tape": "wavy",
+  "opts": null,
+  "script": "x = sma(close, 5)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "script draws nothing — add a plot(), plotshape(), plotbuy(), plotsell(), infopanel(), barcolor() or bgcolor()"
+  }
+}

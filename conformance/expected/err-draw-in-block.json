@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-draw-in-block",
+  "tape": "wavy",
+  "opts": null,
+  "script": "if close > open\n    plot(close)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 2: plot() must be at the top level of the script, not inside a block, while condition or switch arm"
+  }
+}

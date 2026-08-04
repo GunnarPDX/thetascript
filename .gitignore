@@ -1,0 +1,9 @@
+node_modules/
+rust/target/
+rust/theta-script-py/.venv/
+rust/theta-script-py/__pycache__/
+rust/theta-script-py/.pytest_cache/
+elixir/theta_script/_build/
+elixir/theta_script/deps/
+elixir/theta_script/priv/native/
+elixir/theta_script/.elixir_ls/

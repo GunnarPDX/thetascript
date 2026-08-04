@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-period-too-big",
+  "tape": "single",
+  "opts": null,
+  "script": "plot(sma(close, 200000))\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "sma: period too large (max 100000)"
+  }
+}

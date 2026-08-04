@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-var-plain-reassign",
+  "tape": "wavy",
+  "opts": null,
+  "script": "var x = 1\nx = 2\nplot(close)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 2: 'x' is declared with var — use := to reassign it"
+  }
+}

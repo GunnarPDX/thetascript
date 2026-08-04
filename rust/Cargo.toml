@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = ["theta-script", "theta-script-py", "theta-script-nif"]
+
+[profile.test]
+opt-level = 2

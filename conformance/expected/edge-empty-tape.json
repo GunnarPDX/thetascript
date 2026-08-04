@@ -1,0 +1,53 @@
+{
+  "lang": "2.4.0",
+  "name": "edge-empty-tape",
+  "tape": "empty",
+  "opts": null,
+  "script": "study(\"t\")\nplot(close)\nplotbuy(crossover(close, open))\ninfopanel(close, title=\"last\")\n",
+  "expected": {
+    "title": "t",
+    "overlay": true,
+    "description": null,
+    "plots": [
+      {
+        "key": "p0",
+        "title": null,
+        "color": "#22d3ee",
+        "width": 2,
+        "style": "line",
+        "lineStyle": "solid",
+        "colorSpan": null,
+        "widthSpan": null,
+        "values": []
+      }
+    ],
+    "fills": [],
+    "shapes": [],
+    "trades": [
+      {
+        "values": [],
+        "qty": [],
+        "side": "buy",
+        "color": null,
+        "priceSource": "close"
+      }
+    ],
+    "panel": [
+      {
+        "title": "last",
+        "value": null,
+        "color": null,
+        "precision": 2
+      }
+    ],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": null
+  }
+}

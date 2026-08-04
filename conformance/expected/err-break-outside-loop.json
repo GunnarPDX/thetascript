@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-break-outside-loop",
+  "tape": "wavy",
+  "opts": null,
+  "script": "break\nplot(close)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: 'break' outside of a loop"
+  }
+}

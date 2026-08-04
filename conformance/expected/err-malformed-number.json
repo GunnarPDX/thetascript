@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-malformed-number",
+  "tape": "wavy",
+  "opts": null,
+  "script": "x = 1.2.3\nplot(close)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 1: malformed number '1.2.3' — only one '.' allowed"
+  }
+}

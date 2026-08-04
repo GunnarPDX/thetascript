@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-while-security",
+  "tape": "wavy",
+  "opts": null,
+  "script": "k = 0\nwhile security(\"5m\", volume) > k\n    k := k + 5000\nplot(k)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "line 2: security() must be at the top level of the script, not inside a block, while condition or switch arm"
+  }
+}

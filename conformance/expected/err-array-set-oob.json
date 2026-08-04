@@ -1,0 +1,26 @@
+{
+  "lang": "2.4.0",
+  "name": "err-array-set-oob",
+  "tape": "wavy",
+  "opts": null,
+  "script": "var a = array.new(2)\narray.set(a, 5, 1)\nplot(close)\n",
+  "expected": {
+    "title": null,
+    "overlay": true,
+    "description": null,
+    "plots": [],
+    "fills": [],
+    "shapes": [],
+    "trades": [],
+    "panel": [],
+    "barColors": [],
+    "bgColors": [],
+    "inputs": [],
+    "alerts": [],
+    "lines": [],
+    "labels": [],
+    "boxes": [],
+    "strategy": null,
+    "error": "array.set: index 5 out of range (size 2)"
+  }
+}

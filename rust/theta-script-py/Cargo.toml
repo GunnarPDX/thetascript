@@ -1,0 +1,16 @@
+[package]
+name = "theta-script-py"
+version = "2.4.0"
+edition = "2021"
+description = "Python bindings for the open-financial-charts scripting language core"
+license = "MIT"
+publish = false
+
+[lib]
+name = "theta_script"
+crate-type = ["cdylib"]
+
+[dependencies]
+theta_script_core = { path = "../theta-script", package = "theta-script" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+pyo3 = { version = "0.26", features = ["extension-module", "abi3-py39"] }

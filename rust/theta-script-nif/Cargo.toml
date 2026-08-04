@@ -1,0 +1,16 @@
+[package]
+name = "theta_script_nif"
+version = "2.4.0"
+edition = "2021"
+description = "Elixir NIF bindings for the open-financial-charts scripting language core"
+license = "MIT"
+publish = false
+
+[lib]
+name = "theta_script_nif"
+crate-type = ["cdylib"]
+
+[dependencies]
+theta-script = { path = "../theta-script" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+rustler = "0.36"
