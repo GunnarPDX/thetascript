@@ -1,5 +1,7 @@
 # theta-script
 
+**Documentation: [gunnarpdx.github.io/thetascript](https://gunnarpdx.github.io/thetascript/)**
+
 A small scripting language for chart studies and trade-signal scripts,
 executed **once per bar**. One language, four conforming runtimes:
 
@@ -167,7 +169,9 @@ runtimes share one implementation of the semantics.
 
 ## Documentation site
 
-[`docs/`](docs/) is a static site for GitHub Pages: a landing page, a
+[`docs/`](docs/) is the static site served at
+[gunnarpdx.github.io/thetascript](https://gunnarpdx.github.io/thetascript/):
+a landing page, a
 guided tutorial, the full builtin reference, the tested example scripts,
 and the rendered spec and conformance contract. It is generated — never
 edited by hand — from the documentation of record (`js/src/docs.js`,
@@ -177,9 +181,9 @@ edited by hand — from the documentation of record (`js/src/docs.js`,
 cd js && npm run docs:site   # regenerates docs/, commit the output
 ```
 
-To publish: push to GitHub, then Settings → Pages → Deploy from a
-branch → `main` / `docs/`. Regenerate whenever the source docs change
-(the drift test in `js/test/docs.test.js` keeps `docs.js` itself honest).
+GitHub Pages serves `main` / `docs/`, so pushing a regenerated `docs/`
+deploys the site. Regenerate whenever the source docs change (the drift
+test in `js/test/docs.test.js` keeps `docs.js` itself honest).
 
 ## Running the test suites
 

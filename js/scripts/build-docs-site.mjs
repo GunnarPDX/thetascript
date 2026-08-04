@@ -188,7 +188,7 @@ footer {
 function page(file, title, body, { description } = {}) {
   const nav = NAV.map(
     ([href, label]) =>
-      `<a href="${href}"${href === file ? ' aria-current="page"' : ''}${href === 'index.html' ? ' class="brand"' : ''}>${href === 'index.html' ? 'theta-script' : label}</a>`,
+      `<a href="${href}"${href === file ? ' aria-current="page"' : ''}${href === 'index.html' ? ' class="brand"' : ''}>${href === 'index.html' ? 'ThetaScript' : label}</a>`,
   ).join('');
   writeFileSync(
     join(out, file),
