@@ -1,7 +1,7 @@
 {
   "name": "theta-script",
-  "version": "2.4.0",
-  "description": "per-bar scripting language for chart studies and trade signals — JavaScript reference implementation",
+  "version": "3.0.0",
+  "description": "per-bar scripting language for chart studies and trade signals — Rust core compiled to WebAssembly",
   "license": "MIT",
   "author": "Gunnar Rosenberg",
   "homepage": "https://gunnarpdx.github.io/thetascript/",
@@ -24,23 +24,33 @@
     "finance"
   ],
   "type": "module",
-  "main": "./src/interpreter.js",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "exports": {
-    ".": "./src/interpreter.js",
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./js": "./src/interpreter.js",
     "./docs": "./src/docs.js",
     "./examples": "./src/examples.js",
     "./math": "./src/math.js",
     "./rewriteStyle": "./src/rewriteStyle.js",
-    "./builtins": "./src/builtins.js"
+    "./builtins": "./src/builtins.js",
+    "./wasm/*": "./wasm/*"
   },
   "files": [
-    "src"
+    "index.js",
+    "index.d.ts",
+    "src",
+    "wasm"
   ],
   "scripts": {
-    "test": "jest",
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "test": "jest && node --test 'test-wasm/*.test.mjs'",
     "conformance:update": "UPDATE_CONFORMANCE=1 jest conformance",
     "docs:site": "node scripts/build-docs-site.mjs",
-    "prepublishOnly": "jest"
+    "prepublishOnly": "npm run build:wasm && npm test"
   },
   "jest": {
     "testEnvironment": "node",

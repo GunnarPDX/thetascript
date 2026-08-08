@@ -1,10 +1,10 @@
 # theta-script
 
 A small scripting language for chart studies and trade-signal scripts,
-executed **once per bar** — this package is the JavaScript reference
-implementation. It runs in the browser or Node, has no runtime
-dependencies, and produces bit-identical results to the language's Rust,
-Python and Elixir runtimes (enforced by a shared conformance corpus).
+executed **once per bar**. As of v3 this package ships the language's
+**Rust core compiled to WebAssembly** — the same engine behind the
+Python and Elixir runtimes, so results are bit-identical everywhere
+(enforced by a shared conformance corpus). Runs in the browser or Node.
 
 **Docs:** [gunnarpdx.github.io/thetascript](https://gunnarpdx.github.io/thetascript/) ·
 **Spec & repo:** [github.com/GunnarPDX/thetascript](https://github.com/GunnarPDX/thetascript)
@@ -18,8 +18,13 @@ npm install theta-script
 ## Usage
 
 ```js
-import { runScript } from 'theta-script';
+import { init, runScript } from 'theta-script';
 
+// Once, at app startup: fetches and compiles the wasm engine (~340 KB
+// gzipped over the wire, cached by the browser after the first load).
+await init();
+
+// After that, runScript is synchronous — same call shape as ever:
 const bars = [
   { date: 1767625200000, open: 100, high: 101, low: 99.5, close: 100.6, volume: 12000 },
   // …one object per bar, oldest first; date is ms since the Unix epoch
@@ -47,11 +52,31 @@ The language is safe on untrusted input by construction — no recursion, no
 unbounded loops, no I/O — with bounded work per run, so it's suitable for
 running user-authored scripts.
 
+`init()` with no argument resolves the `.wasm` asset relative to the
+module (bundlers handle this); pass a URL, `Response`, bytes, or a
+compiled `WebAssembly.Module` to override. In Node (or anywhere you have
+the bytes already), `initSync(bytes)` is also available.
+
+## Migrating from v2
+
+- **Call `await init()` once before the first `runScript`.** Everything
+  after that is synchronous, as before. `runScript` throws a clear error
+  if the engine isn't loaded yet.
+- **Results are now in the JSON wire encoding** used by every other
+  runtime and the conformance fixtures: `NaN → null`,
+  `±Infinity → "Infinity"/"-Infinity"`, `−0 → 0`. v2 returned raw `NaN`
+  values in series; if your chart code checked `Number.isNaN(v)`, check
+  `v === null` (or `v == null`) instead.
+- The pure-JS v2 interpreter remains importable as **`theta-script/js`**
+  (same sync `runScript`, raw `NaN` results) if you need the old
+  behavior during migration.
+
 ## Extra entry points
 
 ```js
 import { HELP_SECTIONS, GETTING_STARTED } from 'theta-script/docs'; // reference data + tutorial
 import { EXAMPLES, DEFAULT_SCRIPT } from 'theta-script/examples';   // tested example scripts
+import { runScript } from 'theta-script/js';                        // pure-JS v2 interpreter
 ```
 
 ## Learn more

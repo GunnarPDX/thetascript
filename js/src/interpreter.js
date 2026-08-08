@@ -22,9 +22,7 @@ import {
 import { resolveTimezone, parseTimestamp, wallDate } from './time.js';
 import { StrategyEngine } from './strategy.js';
 
-// language/spec version (see SPEC.md) — bump on any observable behavior
-// change so browser and backend implementations can be kept in lockstep
-export const LANG_VERSION = '2.4.0';
+export { LANG_VERSION, DRAW_FN_NAMES, KEYWORD_NAMES } from './names.js';
 
 const PLOT_COLORS = ['#22d3ee', '#f59e0b', '#a78bfa', '#22c55e', '#ec4899', '#38bdf8'];
 const PLOT_STYLES = new Set(['line', 'histogram', 'area', 'stepline', 'circles']);
@@ -924,16 +922,6 @@ const intFloat = (eng, node, args, kw, type) => {
   };
 };
 
-// plot(...) draws — everything the evaluator dispatches specially plus the
-// language keywords, exported for tooling (syntax highlighter, docs test)
-export const DRAW_FN_NAMES = [
-  'study', 'input', 'input.int', 'input.float', 'input.time', 'input.bool', 'input.string',
-  'plot', 'hline', 'fill', 'plotshape', 'plotbuy', 'plotsell',
-  'infopanel', 'barcolor', 'bgcolor', 'alertcondition',
-  'strategy.buy', 'strategy.sell', 'strategy.config',
-  'line.new', 'label.new', 'box.new', 'security',
-];
-export const KEYWORD_NAMES = ['and', 'or', 'not', 'true', 'false', 'na', 'var', 'if', 'else', 'for', 'to', 'by', 'while', 'switch', 'break', 'continue'];
 
 // plotbuy / plotsell share one handler
 const TRADE_PRICE_SOURCES = ['open', 'high', 'low', 'close'];
