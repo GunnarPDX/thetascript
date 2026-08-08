@@ -7,3 +7,6 @@ elixir/theta_script/_build/
 elixir/theta_script/deps/
 elixir/theta_script/priv/native/
 elixir/theta_script/.elixir_ls/
+rust/theta-script-wasm/target/
+rust/theta-script-wasm/pkg/
+js/wasm/

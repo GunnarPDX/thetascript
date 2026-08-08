@@ -1,0 +1,33 @@
+[package]
+name = "theta-script-wasm"
+version = "2.4.0"
+edition = "2021"
+description = "wasm bindings for the open-financial-charts scripting language core"
+license = "MIT"
+publish = false
+
+[lib]
+name = "theta_script_wasm"
+crate-type = ["cdylib"]
+
+# Standalone (not a workspace member) so the release profile below applies
+# without changing how the NIF / PyO3 crates are built.
+[workspace]
+
+[dependencies]
+theta_script_core = { path = "../theta-script", package = "theta-script" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+wasm-bindgen = "0.2"
+
+# opt-level 3 over "z": measured ~1.8x faster at runtime for ~29KB more
+# compressed download (216 vs 187 KB brotli); wasm-opt -Oz can't recover
+# the difference afterwards.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

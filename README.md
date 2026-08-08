@@ -8,14 +8,19 @@ npm install theta-script
 ```
 
 A small scripting language for chart studies and trade-signal scripts,
-executed **once per bar**. One language, four conforming runtimes:
+executed **once per bar**. One engine — the Rust core — behind every
+runtime:
 
 | Runtime | Where | Role |
 |---|---|---|
-| JavaScript | [`js/`](js/) | **Reference implementation** — defines the language, runs in the browser; on npm as [`theta-script`](https://www.npmjs.com/package/theta-script) |
-| Rust | [`rust/theta-script/`](rust/theta-script/) | Native core for backends |
+| Rust | [`rust/theta-script/`](rust/theta-script/) | **The engine** — single implementation of the language semantics; every runtime below wraps it |
+| JavaScript (wasm) | [`js/`](js/) | Browser/Node package: the Rust core compiled to WebAssembly; on npm as [`theta-script`](https://www.npmjs.com/package/theta-script) |
 | Python | [`rust/theta-script-py/`](rust/theta-script-py/) | PyO3 wheel over the Rust core |
 | Elixir | [`elixir/theta_script/`](elixir/theta_script/) | Rustler NIF over the Rust core |
+
+A pure-JS interpreter (`js/src/`, importable as `theta-script/js`) is
+retained as an independent second implementation: it generates the
+conformance fixtures and cross-checks the Rust core bit-for-bit.
 
 The language is defined by two artifacts, and only those two:
 
@@ -110,16 +115,18 @@ Every runtime returns the same shape ([spec §12](spec/SPEC.md)):
 }
 ```
 
-All per-bar arrays have length `n`. On the JSON wire (Python/Elixir
-bindings, conformance fixtures) IEEE-754 specials are encoded as
-`NaN → null`, `±Infinity → "±Infinity"`, `−0 → 0`.
+All per-bar arrays have length `n`. On the JSON wire (the npm wasm
+package, Python/Elixir bindings, conformance fixtures) IEEE-754 specials
+are encoded as `NaN → null`, `±Infinity → "±Infinity"`, `−0 → 0`.
 
 ## Quick start
 
-### JavaScript (reference)
+### JavaScript (wasm)
 
 ```js
-import { runScript } from 'theta-script';
+import { init, runScript } from 'theta-script';
+
+await init(); // once, at app startup — loads and compiles the wasm engine
 
 const bars = [{ date: 1767625200000, open: 100, high: 101, low: 99.5, close: 100.6, volume: 12000 } /* … */];
 const result = runScript(`
@@ -168,9 +175,9 @@ theta_script.lang_version()  # e.g. "2.4.0"
 ThetaScript.lang_version()  # e.g. "2.4.0"
 ```
 
-The Python and Elixir bindings speak JSON strings in and wire-encoded
-JSON out; both are thin wrappers over the Rust core, so all three native
-runtimes share one implementation of the semantics.
+The wasm, Python and Elixir bindings speak JSON in and wire-encoded JSON
+out; all are thin wrappers over the Rust core, so every runtime shares
+one implementation of the semantics.
 
 ## Documentation site
 
@@ -231,18 +238,24 @@ differs across platforms). Details in
 
 The change discipline that keeps four runtimes in lockstep:
 
-1. Implement in the JS reference first (`js/src/`), with docs rows in
-   `docs.js` (a drift test enforces coverage of every builtin).
-2. Add conformance cases in `js/test/cases.js`, then regenerate:
+1. Implement in the Rust core (`rust/theta-script/`) — the engine every
+   runtime ships.
+2. Mirror the change in the JS oracle (`js/src/`), with docs rows in
+   `docs.js` (a drift test enforces coverage of every builtin). Two
+   independent implementations agreeing bit-for-bit is what keeps the
+   spec honest.
+3. Add conformance cases in `js/test/cases.js`, then regenerate:
    `cd js && npm run conformance:update`. Diff `conformance/expected/`
    and prove pre-existing fixtures changed only as intended.
-3. Bump `LANG_VERSION` in `js/src/interpreter.js` (and the versions in
-   `js/package.json`, `rust/*/Cargo.toml`, `rust/theta-script-py/pyproject.toml`,
+4. Bump `LANG_VERSION` in `js/src/names.js` (and the versions in
+   `rust/*/Cargo.toml`, `rust/theta-script-py/pyproject.toml`,
    `elixir/theta_script/mix.exs`) on **any** observable behavior change.
-4. Port to the Rust core and re-run all four suites — the port runners
-   assert their compiled-in version against every fixture's `lang` field,
-   so a missed bump fails loudly.
-5. Record the change in `spec/SPEC.md` §14.
+   The npm package version is independent semver (3.x is the wasm-engine
+   era; the language it speaks is `LANG_VERSION`).
+5. Rebuild the wasm engine (`cd js && npm run build:wasm`) and re-run
+   every suite — the port runners assert their compiled-in version
+   against every fixture's `lang` field, so a missed bump fails loudly.
+6. Record the change in `spec/SPEC.md` §14.
 
 ## License
 

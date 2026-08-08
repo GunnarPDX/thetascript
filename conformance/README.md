@@ -2,11 +2,15 @@
 
 The executable contract for the scripting language (see [`../SPEC.md`](../spec/SPEC.md)).
 An implementation of the language is *conforming* iff it reproduces every
-fixture in this directory. The JavaScript interpreter in `js/` is the
-reference implementation and the generator of these fixtures.
+fixture in this directory. The Rust core at
+[`rust/theta-script`](../rust/theta-script/) is the engine every shipped
+runtime wraps; the pure-JS interpreter in `js/src/` is a retained
+independent implementation and the generator of these fixtures — two
+implementations agreeing bit-for-bit is what keeps the corpus honest.
 
-Known conforming implementations: the JS reference, and the Rust core at
-[`rust/theta-script`](../rust/theta-script/) (`cargo test` runs this corpus).
+Known conforming implementations: the Rust core (`cargo test` runs this
+corpus; its wasm build is exercised by `js/test-wasm/`), and the JS
+interpreter (`jest conformance` in `js/`).
 
 ## Layout
 
