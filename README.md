@@ -1,13 +1,18 @@
 # theta-script
 
-**Documentation: [gunnarpdx.github.io/thetascript](https://gunnarpdx.github.io/thetascript/)**
+**Documentation: [gunnarpdx.github.io/thetascript](https://gunnarpdx.github.io/thetascript/)** ·
+**npm: [`theta-script`](https://www.npmjs.com/package/theta-script)**
+
+```sh
+npm install theta-script
+```
 
 A small scripting language for chart studies and trade-signal scripts,
 executed **once per bar**. One language, four conforming runtimes:
 
 | Runtime | Where | Role |
 |---|---|---|
-| JavaScript | [`js/`](js/) | **Reference implementation** — defines the language, runs in the browser |
+| JavaScript | [`js/`](js/) | **Reference implementation** — defines the language, runs in the browser; on npm as [`theta-script`](https://www.npmjs.com/package/theta-script) |
 | Rust | [`rust/theta-script/`](rust/theta-script/) | Native core for backends |
 | Python | [`rust/theta-script-py/`](rust/theta-script-py/) | PyO3 wheel over the Rust core |
 | Elixir | [`elixir/theta_script/`](elixir/theta_script/) | Rustler NIF over the Rust core |
