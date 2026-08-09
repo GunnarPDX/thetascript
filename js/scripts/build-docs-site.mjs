@@ -119,76 +119,145 @@ const NAV = [
 
 const CSS = `
 :root {
-  --bg: #ffffff; --fg: #1a1f24; --muted: #57606a; --line: #d8dee4;
-  --accent: #0969da; --code-bg: #f6f8fa; --k: #cf222e; --s: #0a3069;
-  --c: #6e7781; --n: #0550ae; --o: #8250df;
+  --bg: #fbfcfe; --bg-elev: #ffffff; --fg: #10151a; --muted: #5b6772;
+  --line: #e3e8ee; --accent: #0e7490; --code-bg: #f4f6f9;
+  --k: #cf222e; --s: #0a3069; --c: #6e7781; --n: #0550ae; --o: #8250df;
+  --logo-1: #06b6d4; --logo-2: #8b5cf6;
+  --nav-bg: rgb(255 255 255 / 0.78);
+  --shadow: 0 1px 2px rgb(16 21 26 / 0.05), 0 10px 28px -14px rgb(16 21 26 / 0.18);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0d1117; --fg: #e6edf3; --muted: #8d96a0; --line: #30363d;
-    --accent: #58a6ff; --code-bg: #161b22; --k: #ff7b72; --s: #a5d6ff;
-    --c: #8b949e; --n: #79c0ff; --o: #d2a8ff;
+    --bg: #0b0e13; --bg-elev: #11161d; --fg: #e7edf3; --muted: #93a0ab;
+    --line: #222a34; --accent: #3fd0ec; --code-bg: #10151d;
+    --k: #ff7b72; --s: #a5d6ff; --c: #7d8590; --n: #79c0ff; --o: #d2a8ff;
+    --logo-1: #22d3ee; --logo-2: #a78bfa;
+    --nav-bg: rgb(11 14 19 / 0.72);
+    --shadow: 0 0 0 1px rgb(255 255 255 / 0.03), 0 14px 36px -16px rgb(0 0 0 / 0.65);
   }
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
-  font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
 }
+::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+.lg1 { stop-color: var(--logo-1); } .lg2 { stop-color: var(--logo-2); }
 nav {
-  position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line);
-  padding: 0.6rem 1rem; display: flex; gap: 1.1rem; align-items: baseline;
-  flex-wrap: wrap; z-index: 10;
+  position: sticky; top: 0; z-index: 10;
+  display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap;
+  padding: 0.65rem 1.25rem; border-bottom: 1px solid var(--line);
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5);
 }
-nav .brand { font-weight: 700; font-family: ui-monospace, monospace; margin-right: 0.5rem; }
-nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
-nav a.brand { color: var(--fg); font-size: 1rem; }
+nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; transition: color 0.15s; }
+nav a:hover { color: var(--fg); }
 nav a[aria-current] { color: var(--accent); font-weight: 600; }
-nav a:hover { color: var(--accent); }
-main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-h1 { font-size: 1.9rem; line-height: 1.25; margin: 1rem 0; }
-h2 { margin-top: 2.2rem; padding-top: 0.4rem; }
+nav a.brand {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-right: 0.6rem;
+  color: var(--fg); font: 700 1.02rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  letter-spacing: -0.01em;
+}
+nav a.brand:hover { color: var(--fg); }
+nav a.brand svg { display: block; }
+main { max-width: 60rem; margin: 0 auto; padding: 2.4rem 1.25rem 4rem; }
+h1 {
+  font-size: clamp(1.9rem, 4.5vw, 2.5rem); line-height: 1.2; letter-spacing: -0.028em;
+  font-weight: 800; margin: 1rem 0; text-wrap: balance;
+}
+h1.hero-title { display: flex; align-items: center; gap: 0.75rem; margin-top: 1.6rem; }
+h1.hero-title svg { flex: none; }
+h2 {
+  margin-top: 2.6rem; letter-spacing: -0.015em;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.4rem;
+}
+h1, h2, h3 { scroll-margin-top: 4.5rem; }
 h1 code, h2 code, h3 code { background: none; padding: 0; }
-a { color: var(--accent); }
+a { color: var(--accent); text-underline-offset: 0.15em; }
 p code, li code, td code, th code {
-  background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px;
   padding: 0.08em 0.32em; font-size: 0.86em;
 }
 pre {
-  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
-  padding: 0.9rem 1.1rem; overflow-x: auto; line-height: 1.5;
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1rem 1.2rem; overflow-x: auto; line-height: 1.5; box-shadow: var(--shadow);
 }
 pre code { font: 0.86rem/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
 .k { color: var(--k); } .s { color: var(--s); } .c { color: var(--c); font-style: italic; }
 .n { color: var(--n); } .o { color: var(--o); }
-.tablewrap { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
-th, td { border: 1px solid var(--line); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
-th { background: var(--code-bg); }
-.lede { font-size: 1.12rem; color: var(--muted); max-width: 44rem; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 2rem 0; }
-.card {
-  border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem;
-  text-decoration: none; color: var(--fg); display: block;
+.tablewrap {
+  overflow-x: auto; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--bg-elev); margin: 1.1rem 0;
 }
-.card:hover { border-color: var(--accent); }
-.card h3 { margin: 0 0 0.35rem; color: var(--accent); }
+table { border-collapse: collapse; width: 100%; margin: 0; font-size: 0.92rem; }
+th, td {
+  border: 0; border-bottom: 1px solid var(--line);
+  padding: 0.55rem 0.85rem; text-align: left; vertical-align: top;
+}
+thead th { background: var(--code-bg); font-weight: 600; }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 46rem; text-wrap: pretty; }
+.install code {
+  display: inline-block; background: var(--code-bg); border: 1px solid var(--line);
+  border-radius: 999px; padding: 0.45em 1.1em; font-size: 0.92rem;
+}
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr)); gap: 1rem; margin: 2.2rem 0; }
+.card {
+  background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px;
+  padding: 1.15rem 1.3rem; text-decoration: none; color: var(--fg); display: block;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  transform: translateY(-2px); box-shadow: var(--shadow);
+}
+.card h3 { margin: 0 0 0.35rem; color: var(--accent); letter-spacing: -0.01em; }
 .card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
 .tags { color: var(--muted); font-size: 0.85rem; font-family: ui-monospace, monospace; }
 .blurb { color: var(--muted); max-width: 44rem; }
-.toc { border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.2rem; margin: 1.4rem 0; column-width: 16rem; }
-.toc a { display: block; text-decoration: none; padding: 0.12rem 0; font-size: 0.93rem; }
+.toc { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1.6rem 0; }
+.toc a {
+  border: 1px solid var(--line); border-radius: 999px; background: var(--bg-elev);
+  padding: 0.26rem 0.85rem; font-size: 0.88rem; text-decoration: none; color: var(--muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+.toc a:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
 footer {
   border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem;
   max-width: 60rem; margin: 0 auto; padding: 1.2rem 1.25rem 2.5rem;
 }
-.refrow th { font-family: ui-monospace, monospace; font-weight: 500; white-space: pre-wrap; width: 42%; }
+.refrow th { font-family: ui-monospace, monospace; font-weight: 500; white-space: pre-wrap; width: 42%; background: none; }
 `;
 
+// --- the θ logomark: geometric strokes, gently italic (skewed ~7.5°),
+// gradient-filled via CSS vars so it adapts to light/dark. One shared
+// <defs> gradient is injected per page; the favicon bakes its colors in.
+const THETA_BODY = (grad) =>
+  `<g transform="translate(2.1 0) skewX(-7.5)" fill="none" stroke="url(#${grad})" stroke-width="3.2" stroke-linecap="round">` +
+  `<ellipse cx="15" cy="16" rx="8.8" ry="12.4"/><path d="M6.6 16h16.8"/></g>`;
+const thetaLogo = (size) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true">${THETA_BODY('thetaGrad')}</svg>`;
+const THETA_DEFS =
+  `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>` +
+  `<linearGradient id="thetaGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">` +
+  `<stop class="lg1" offset="0"/><stop class="lg2" offset="1"/></linearGradient></defs></svg>`;
+const FAVICON =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
+      `<defs><linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">` +
+      `<stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>` +
+      THETA_BODY('g') +
+      `</svg>`,
+  );
+
 function page(file, title, body, { description } = {}) {
-  const nav = NAV.map(
-    ([href, label]) =>
-      `<a href="${href}"${href === file ? ' aria-current="page"' : ''}${href === 'index.html' ? ' class="brand"' : ''}>${href === 'index.html' ? 'ThetaScript' : label}</a>`,
+  const nav = NAV.map(([href, label]) =>
+    href === 'index.html'
+      ? `<a href="${href}" class="brand">${thetaLogo(20)}<span>theta-script</span></a>`
+      : `<a href="${href}"${href === file ? ' aria-current="page"' : ''}>${label}</a>`,
   ).join('');
   writeFileSync(
     join(out, file),
@@ -199,9 +268,13 @@ function page(file, title, body, { description } = {}) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 ${description ? `<meta name="description" content="${esc(description)}">` : ''}
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfcfe">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0e13">
+<link rel="icon" href="${FAVICON}">
 <style>${CSS}</style>
 </head>
 <body>
+${THETA_DEFS}
 <nav>${nav}</nav>
 <main>
 ${body}
@@ -235,11 +308,12 @@ page(
   'index.html',
   'theta-script — a per-bar scripting language for chart studies',
   `
-<h1>theta-script</h1>
+<h1 class="hero-title">${thetaLogo(38)}<span>theta-script</span></h1>
 <p class="lede">A small scripting language for chart studies and trade-signal
-scripts, executed once per bar. One language, four conforming runtimes —
-JavaScript, Rust, Python and Elixir — held together by a normative spec and a
-bit-exact conformance corpus.</p>
+scripts, executed once per bar. One Rust engine behind every runtime —
+WebAssembly in the browser, native on the server, Python and Elixir bindings —
+held together by a normative spec and a bit-exact conformance corpus.</p>
+<p class="install"><code>npm install theta-script</code></p>
 
 ${code(HERO_SCRIPT)}
 
@@ -257,15 +331,19 @@ structures</strong> beyond bounded arrays. Work per run is bounded by
 <code>bars × statements × loop-limit</code>, and the per-bar execution model
 evaluates incrementally — a live tick appends one bar of work, which is what a
 streaming backend wants.</p>
-<p>The same script produces bit-identical results in the browser (JavaScript
-reference), on the server (Rust core), and through the Python and Elixir
-bindings. That claim is enforced, not aspirational: every runtime replays a
-shared corpus of golden fixtures on every test run
+<p>The same script produces bit-identical results in the browser (the Rust
+core compiled to WebAssembly), on the server (native Rust), and through the
+Python and Elixir bindings — one engine, compiled everywhere. That claim is
+enforced, not aspirational: every runtime replays a shared corpus of golden
+fixtures on every test run, and a retained pure-JS implementation reproduces
+the same corpus independently, keeping the spec honest
 (<a href="conformance.html">how conformance works</a>).</p>
 
 <h2>Quick start</h2>
 <h3>JavaScript</h3>
-<pre><code>import { runScript } from 'theta-script';
+<pre><code>import { init, runScript } from 'theta-script';
+
+await init(); // once, at app startup — loads the wasm engine
 
 const result = runScript(source, bars, { timezone: 'America/New_York' });
 // result.plots / result.trades / result.strategy / result.error …</code></pre>
