@@ -7,6 +7,19 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HELP_SECTIONS, GETTING_STARTED } from '../src/docs.js';
 import { EXAMPLES } from '../src/examples.js';
+import { LANG_VERSION } from '../src/names.js';
+
+// docs/og-card.png (the social-preview image referenced from every page) is
+// a committed asset, not rebuilt here: render js/scripts/og-card.svg in a
+// browser at 1200x630 and export. SVG-to-PNG CLI tools mangle it (the theta
+// crossbar needs a userSpaceOnUse gradient; qlmanage also breaks aspect).
+const SITE = 'https://gunnarpdx.github.io/thetascript/';
+const REPO = 'https://github.com/GunnarPDX/thetascript';
+const NPM = 'https://www.npmjs.com/package/theta-script';
+const TAGLINE =
+  'A small scripting language for chart studies and trade-signal scripts, ' +
+  'executed once per bar — one Rust engine compiled to WebAssembly, native, ' +
+  'Python and Elixir, kept bit-exact by a conformance corpus.';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const out = join(root, 'docs');
@@ -259,6 +272,34 @@ function page(file, title, body, { description } = {}) {
       ? `<a href="${href}" class="brand">${thetaLogo(20)}<span>theta-script</span></a>`
       : `<a href="${href}"${href === file ? ' aria-current="page"' : ''}>${label}</a>`,
   ).join('');
+  const url = SITE + (file === 'index.html' ? '' : file);
+  const ld =
+    file === 'index.html'
+      ? {
+          '@context': 'https://schema.org',
+          '@graph': [
+            { '@type': 'WebSite', name: 'theta-script', url: SITE, description },
+            {
+              '@type': 'SoftwareSourceCode',
+              name: 'theta-script',
+              description: TAGLINE,
+              url: SITE,
+              version: LANG_VERSION,
+              codeRepository: REPO,
+              programmingLanguage: ['Rust', 'WebAssembly', 'JavaScript', 'Python', 'Elixir'],
+              license: 'https://opensource.org/license/mit/',
+            },
+          ],
+        }
+      : {
+          '@context': 'https://schema.org',
+          '@type': 'TechArticle',
+          headline: title,
+          description,
+          url,
+          inLanguage: 'en',
+          isPartOf: { '@type': 'WebSite', name: 'theta-script', url: SITE },
+        };
   writeFileSync(
     join(out, file),
     `<!doctype html>
@@ -268,6 +309,20 @@ function page(file, title, body, { description } = {}) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 ${description ? `<meta name="description" content="${esc(description)}">` : ''}
+<link rel="canonical" href="${url}">
+<meta property="og:site_name" content="theta-script">
+<meta property="og:type" content="${file === 'index.html' ? 'website' : 'article'}">
+<meta property="og:title" content="${esc(title)}">
+${description ? `<meta property="og:description" content="${esc(description)}">` : ''}
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${SITE}og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+${description ? `<meta name="twitter:description" content="${esc(description)}">` : ''}
+<meta name="twitter:image" content="${SITE}og-card.png">
+<script type="application/ld+json">${JSON.stringify(ld)}</script>
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfcfe">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0e13">
 <link rel="icon" href="${FAVICON}">
@@ -432,7 +487,8 @@ ${code(ex.source)}`,
 );
 
 // --- spec.html / conformance.html (rendered markdown)
-const spec = markdown(readFileSync(join(root, 'spec', 'SPEC.md'), 'utf8'));
+const specMd = readFileSync(join(root, 'spec', 'SPEC.md'), 'utf8');
+const spec = markdown(specMd);
 page(
   'spec.html',
   'theta-script language specification',
@@ -441,10 +497,98 @@ page(
   { description: 'The normative theta-script language specification.' },
 );
 
-const conf = markdown(readFileSync(join(root, 'conformance', 'README.md'), 'utf8'));
+const confMd = readFileSync(join(root, 'conformance', 'README.md'), 'utf8');
+const conf = markdown(confMd);
 page('conformance.html', 'theta-script conformance corpus', conf.html, {
   description: 'How the theta-script conformance corpus keeps four runtimes bit-exact.',
 });
+
+// --- crawler & AI-agent artifacts: robots.txt, sitemap.xml, llms.txt,
+// llms-full.txt. Note: this is a GitHub *project* page, so these serve
+// under /thetascript/ — the domain-root robots.txt belongs to GitHub.
+// Ours is still read by AI agents given the site URL, and the sitemap can
+// be submitted to Search Console directly.
+const PAGES = [...NAV.map(([href]) => href), 'conformance.html'];
+
+writeFileSync(
+  join(out, 'robots.txt'),
+  `# theta-script docs — crawling welcome, including for AI training/answering.
+# Machine-readable summaries: ${SITE}llms.txt and ${SITE}llms-full.txt
+User-agent: *
+Allow: /
+
+Sitemap: ${SITE}sitemap.xml
+`,
+);
+
+writeFileSync(
+  join(out, 'sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${PAGES.map((p) => `  <url><loc>${SITE}${p === 'index.html' ? '' : p}</loc></url>`).join('\n')}
+</urlset>
+`,
+);
+
+writeFileSync(
+  join(out, 'llms.txt'),
+  `# theta-script
+
+> ${TAGLINE}
+
+Language version ${LANG_VERSION} (npm package version is independent semver;
+v3+ ships the Rust core compiled to WebAssembly). Scripts run against an
+ordered OHLCV bar array and produce one JSON result object — plots, shapes,
+trades, strategy P&L, alerts — deterministically: same script + bars +
+options gives identical results in every runtime. Safe on untrusted input
+by construction: no recursion, no unbounded loops, no I/O.
+
+## Docs
+
+- [Learn](${SITE}learn.html): seven-step tutorial from first plot to a backtested strategy
+- [Language reference](${SITE}reference.html): every builtin, statement, draw call, source and operator
+- [Examples](${SITE}examples.html): complete scripts, each run against the engine in CI
+- [Specification](${SITE}spec.html): the normative language definition
+- [Conformance](${SITE}conformance.html): how the shared corpus keeps every runtime bit-exact
+- [Full documentation as one markdown file](${SITE}llms-full.txt): reference + tutorial + examples + spec, for LLM ingestion
+
+## Source & packages
+
+- [GitHub repository](${REPO}): spec, conformance corpus, and all runtimes
+- [npm package](${NPM}): \`npm install theta-script\` — wasm engine, \`await init()\` then synchronous \`runScript(source, bars, opts)\`
+`,
+);
+
+const rowsMd = (rows) =>
+  rows.map((r) => `- \`${r[0].replace(/\n/g, ' ')}\` — ${r[1]}`).join('\n');
+const stepMd = (b) => (b.p ? b.p : '```\n' + b.code.trimEnd() + '\n```');
+writeFileSync(
+  join(out, 'llms-full.txt'),
+  `# theta-script — full documentation
+
+> ${TAGLINE}
+
+This file concatenates the complete documentation of record for LLM
+ingestion. Canonical HTML: ${SITE} · Repository: ${REPO} · npm: ${NPM}
+
+# Tutorial
+
+${GETTING_STARTED.map((s) => `## ${s.title}\n\n${s.body.map(stepMd).join('\n\n')}`).join('\n\n')}
+
+# Language reference
+
+${HELP_SECTIONS.map((s) => `## ${s.title}\n\n${rowsMd(s.rows)}`).join('\n\n')}
+
+# Examples
+
+${EXAMPLES.map((e) => `## ${e.name}\n\n${e.blurb}\n\n\`\`\`\n${e.source.trimEnd()}\n\`\`\``).join('\n\n')}
+
+${specMd.trimEnd()}
+
+${confMd.trimEnd()}
+`,
+);
+console.log('wrote robots.txt, sitemap.xml, llms.txt, llms-full.txt');
 
 writeFileSync(join(out, '.nojekyll'), '');
 console.log('wrote .nojekyll');

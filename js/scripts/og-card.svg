@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="theta" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.22" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.10"/>
+      <stop offset="0.5" stop-color="#a78bfa" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#0b0e13" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0b0e13"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g transform="translate(108 168) scale(9.2)" fill="none" stroke="url(#theta)" stroke-width="3.2" stroke-linecap="round">
+    <g transform="translate(2.1 0) skewX(-7.5)">
+      <ellipse cx="15" cy="16" rx="8.8" ry="12.4"/>
+      <path d="M6.6 16h16.8"/>
+    </g>
+  </g>
+  <text x="420" y="318" font-family="Menlo, 'SF Mono', Consolas, monospace" font-size="86" font-weight="700" fill="#e7edf3" letter-spacing="-2">theta-script</text>
+  <text x="424" y="392" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="31" fill="#93a0ab">A per-bar scripting language for chart studies</text>
+  <text x="424" y="436" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="31" fill="#93a0ab">and trade signals</text>
+  <text x="108" y="540" font-family="Menlo, 'SF Mono', Consolas, monospace" font-size="24" fill="#5b6772">Rust core · WebAssembly · Python · Elixir · bit-exact conformance · MIT</text>
+</svg>

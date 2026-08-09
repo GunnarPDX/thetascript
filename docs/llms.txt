@@ -1,0 +1,24 @@
+# theta-script
+
+> A small scripting language for chart studies and trade-signal scripts, executed once per bar — one Rust engine compiled to WebAssembly, native, Python and Elixir, kept bit-exact by a conformance corpus.
+
+Language version 2.4.0 (npm package version is independent semver;
+v3+ ships the Rust core compiled to WebAssembly). Scripts run against an
+ordered OHLCV bar array and produce one JSON result object — plots, shapes,
+trades, strategy P&L, alerts — deterministically: same script + bars +
+options gives identical results in every runtime. Safe on untrusted input
+by construction: no recursion, no unbounded loops, no I/O.
+
+## Docs
+
+- [Learn](https://gunnarpdx.github.io/thetascript/learn.html): seven-step tutorial from first plot to a backtested strategy
+- [Language reference](https://gunnarpdx.github.io/thetascript/reference.html): every builtin, statement, draw call, source and operator
+- [Examples](https://gunnarpdx.github.io/thetascript/examples.html): complete scripts, each run against the engine in CI
+- [Specification](https://gunnarpdx.github.io/thetascript/spec.html): the normative language definition
+- [Conformance](https://gunnarpdx.github.io/thetascript/conformance.html): how the shared corpus keeps every runtime bit-exact
+- [Full documentation as one markdown file](https://gunnarpdx.github.io/thetascript/llms-full.txt): reference + tutorial + examples + spec, for LLM ingestion
+
+## Source & packages
+
+- [GitHub repository](https://github.com/GunnarPDX/thetascript): spec, conformance corpus, and all runtimes
+- [npm package](https://www.npmjs.com/package/theta-script): `npm install theta-script` — wasm engine, `await init()` then synchronous `runScript(source, bars, opts)`
