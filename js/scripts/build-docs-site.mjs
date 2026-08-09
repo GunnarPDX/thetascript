@@ -28,7 +28,7 @@ mkdirSync(out, { recursive: true });
 const esc = (s) =>
   s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 
-// --- theta-script syntax highlighting (comments, strings, keywords, numbers)
+// --- ThetaScript syntax highlighting (comments, strings, keywords, numbers)
 const TOKEN =
   /(\/\/[^\n]*)|("[^"\n]*")|\b(var|if|else|for|to|by|while|switch|break|continue|and|or|not|true|false|na)\b|(=>|:=)|(\b\d+(?:\.\d+)?\b)/g;
 function hl(code) {
@@ -43,6 +43,27 @@ function hl(code) {
   }
   return html + esc(code.slice(last));
 }
+
+// Host-language snippets (JS/Rust/Python/Elixir): same palette, minimal
+// token classes — comments, strings, per-language keywords, atoms, numbers —
+// so the highlighting stays subtle.
+const hlHost = (code, kws) => {
+  kws = kws || '(?!x)x'; // empty keyword set must never match
+  const re = new RegExp(
+    `(\\/\\/[^\\n]*|#[^\\n]*)|("[^"\\n]*"|'[^'\\n]*')|\\b(${kws})\\b|(:\\w+)|(\\b\\d+(?:\\.\\d+)?\\b)`,
+    'g',
+  );
+  let html = '';
+  let last = 0;
+  for (const m of code.matchAll(re)) {
+    html += esc(code.slice(last, m.index));
+    const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : m[4] ? 'o' : 'n';
+    html += `<span class="${cls}">${esc(m[0])}</span>`;
+    last = m.index + m[0].length;
+  }
+  return html + esc(code.slice(last));
+};
+const hostCode = (kws, src) => `<pre><code>${hlHost(src.trim(), kws)}</code></pre>`;
 
 // --- minimal markdown renderer for SPEC.md / conformance README
 function inline(md) {
@@ -77,7 +98,9 @@ function markdown(md) {
       i++;
       while (i < lines.length && !lines[i].startsWith('```')) buf.push(lines[i++]);
       i++;
-      html.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`);
+      // fences in the spec/README are ThetaScript scripts or result-shape
+      // sketches; the language highlighter is conservative enough for both
+      html.push(`<pre><code>${hl(buf.join('\n'))}</code></pre>`);
     } else if (/^#{1,3} /.test(line)) {
       const level = line.match(/^#+/)[0].length;
       const text = line.replace(/^#+ /, '');
@@ -170,8 +193,8 @@ nav a:hover { color: var(--fg); }
 nav a[aria-current] { color: var(--accent); font-weight: 600; }
 nav a.brand {
   display: inline-flex; align-items: center; gap: 0.5rem; margin-right: 0.6rem;
-  color: var(--fg); font: 700 1.02rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  letter-spacing: -0.01em;
+  color: var(--fg); font: 800 1.02rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  letter-spacing: -0.01em; -webkit-text-stroke: 0.02em currentColor;
 }
 nav a.brand:hover { color: var(--fg); }
 nav a.brand svg { display: block; }
@@ -211,6 +234,7 @@ th, td {
 }
 thead th { background: var(--code-bg); font-weight: 600; }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+.ascii-logo { display: block; width: 100%; max-width: 44rem; height: auto; margin: 1.4rem 0 0.6rem; }
 .lede { font-size: 1.15rem; color: var(--muted); max-width: 46rem; text-wrap: pretty; }
 .install code {
   display: inline-block; background: var(--code-bg); border: 1px solid var(--line);
@@ -269,7 +293,7 @@ const FAVICON =
 function page(file, title, body, { description } = {}) {
   const nav = NAV.map(([href, label]) =>
     href === 'index.html'
-      ? `<a href="${href}" class="brand">${thetaLogo(20)}<span>theta-script</span></a>`
+      ? `<a href="${href}" class="brand">${thetaLogo(20)}<span>ThetaScript</span></a>`
       : `<a href="${href}"${href === file ? ' aria-current="page"' : ''}>${label}</a>`,
   ).join('');
   const url = SITE + (file === 'index.html' ? '' : file);
@@ -278,10 +302,10 @@ function page(file, title, body, { description } = {}) {
       ? {
           '@context': 'https://schema.org',
           '@graph': [
-            { '@type': 'WebSite', name: 'theta-script', url: SITE, description },
+            { '@type': 'WebSite', name: 'ThetaScript', url: SITE, description },
             {
               '@type': 'SoftwareSourceCode',
-              name: 'theta-script',
+              name: 'ThetaScript',
               description: TAGLINE,
               url: SITE,
               version: LANG_VERSION,
@@ -298,7 +322,7 @@ function page(file, title, body, { description } = {}) {
           description,
           url,
           inLanguage: 'en',
-          isPartOf: { '@type': 'WebSite', name: 'theta-script', url: SITE },
+          isPartOf: { '@type': 'WebSite', name: 'ThetaScript', url: SITE },
         };
   writeFileSync(
     join(out, file),
@@ -310,7 +334,7 @@ function page(file, title, body, { description } = {}) {
 <title>${esc(title)}</title>
 ${description ? `<meta name="description" content="${esc(description)}">` : ''}
 <link rel="canonical" href="${url}">
-<meta property="og:site_name" content="theta-script">
+<meta property="og:site_name" content="ThetaScript">
 <meta property="og:type" content="${file === 'index.html' ? 'website' : 'article'}">
 <meta property="og:title" content="${esc(title)}">
 ${description ? `<meta property="og:description" content="${esc(description)}">` : ''}
@@ -361,9 +385,10 @@ alertcondition(crossover(fast, slow), message="cross up")`;
 
 page(
   'index.html',
-  'theta-script — a per-bar scripting language for chart studies',
+  'ThetaScript — a per-bar scripting language for chart studies',
   `
-<h1 class="hero-title">${thetaLogo(38)}<span>theta-script</span></h1>
+<h1 class="hero-title">${thetaLogo(38)}<span>ThetaScript</span></h1>
+<img class="ascii-logo" src="ascii-logo.svg" alt="ThetaScript ASCII-art wordmark" width="6403" height="1191">
 <p class="lede">A small scripting language for chart studies and trade-signal
 scripts, executed once per bar. One Rust engine behind every runtime —
 WebAssembly in the browser, native on the server, Python and Elixir bindings —
@@ -380,7 +405,7 @@ ${code(HERO_SCRIPT)}
 </div>
 
 <h2>Why another chart language?</h2>
-<p>theta-script is designed to run untrusted user scripts safely, identically,
+<p>ThetaScript is designed to run untrusted user scripts safely, identically,
 everywhere: <strong>no recursion, no unbounded loops, no I/O, no aggregate data
 structures</strong> beyond bounded arrays. Work per run is bounded by
 <code>bars × statements × loop-limit</code>, and the per-bar execution model
@@ -396,35 +421,43 @@ the same corpus independently, keeping the spec honest
 
 <h2>Quick start</h2>
 <h3>JavaScript</h3>
-<pre><code>import { init, runScript } from 'theta-script';
+${hostCode('import|from|await|const|new|let', `
+import { init, runScript } from 'theta-script';
 
 await init(); // once, at app startup — loads the wasm engine
 
 const result = runScript(source, bars, { timezone: 'America/New_York' });
-// result.plots / result.trades / result.strategy / result.error …</code></pre>
+// result.plots / result.trades / result.strategy / result.error …
+`)}
 <h3>Rust</h3>
-<pre><code>use theta_script::{bars_from_json, opts_from_json, run_script};
+${hostCode('use|let|fn|pub|mut', `
+use theta_script::{bars_from_json, opts_from_json, run_script};
 
-let result = run_script(source, &amp;bars, opts);</code></pre>
+let result = run_script(source, &bars, opts);
+`)}
 <h3>Python</h3>
-<pre><code>import json, theta_script
+${hostCode('import|from|def|None', `
+import json, theta_script
 
-result = json.loads(theta_script.run_script_json(source, json.dumps(bars), None))</code></pre>
+result = json.loads(theta_script.run_script_json(source, json.dumps(bars), None))
+`)}
 <h3>Elixir</h3>
-<pre><code>{:ok, result} = Jason.decode(ThetaScript.run_json(source, bars_json))</code></pre>
+${hostCode('', `
+{:ok, result} = Jason.decode(ThetaScript.run_json(source, bars_json))
+`)}
 <p>Bars are <code>{ date, open, high, low, close, volume }</code> with
 <code>date</code> in milliseconds since the Unix epoch. All four runtimes
 return the same <a href="spec.html#12-result-object">result object</a>.</p>
 `,
-  { description: 'theta-script: a per-bar scripting language for chart studies and trade signals, with four conforming runtimes.' },
+  { description: 'ThetaScript: a per-bar scripting language for chart studies and trade signals, with four conforming runtimes.' },
 );
 
 // --- learn.html (GETTING_STARTED)
 page(
   'learn.html',
-  'Learn theta-script',
+  'Learn ThetaScript',
   `
-<h1>Learn theta-script</h1>
+<h1>Learn ThetaScript</h1>
 <p class="lede">The guided walkthrough from the script editor, in order. Each
 snippet is a complete script you can run as-is.</p>
 ` +
@@ -433,13 +466,13 @@ snippet is a complete script you can run as-is.</p>
 <h2 id="${slug(step.title)}">${esc(step.title)}</h2>
 ${step.body.map((b) => (b.p ? `<p>${esc(b.p)}</p>` : code(b.code))).join('\n')}`,
     ).join('\n'),
-  { description: 'A seven-step guided introduction to the theta-script language.' },
+  { description: 'A seven-step guided introduction to the ThetaScript language.' },
 );
 
 // --- reference.html (HELP_SECTIONS)
 page(
   'reference.html',
-  'theta-script reference',
+  'ThetaScript reference',
   `
 <h1>Language reference</h1>
 <p class="lede">Every builtin, statement, draw function, source and operator.
@@ -456,18 +489,18 @@ exact numeric semantics (warmup, NaN handling, locking), see the
 ${section.rows
   .map(
     (r) =>
-      `<tr class="refrow"><th scope="row">${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`,
+      `<tr class="refrow"><th scope="row">${hl(r[0])}</th><td>${esc(r[1])}</td></tr>`,
   )
   .join('\n')}
 </table></div>`,
     ).join('\n'),
-  { description: 'Complete reference for theta-script builtins, statements, drawing, strategy, data sources and operators.' },
+  { description: 'Complete reference for ThetaScript builtins, statements, drawing, strategy, data sources and operators.' },
 );
 
 // --- examples.html (EXAMPLES)
 page(
   'examples.html',
-  'theta-script examples',
+  'ThetaScript examples',
   `
 <h1>Examples</h1>
 <p class="lede">Complete scripts, from indicator overlays to backtested
@@ -483,7 +516,7 @@ engine.</p>
 <p class="blurb">${esc(ex.blurb)}</p>
 ${code(ex.source)}`,
     ).join('\n'),
-  { description: 'Complete, tested theta-script example scripts.' },
+  { description: 'Complete, tested ThetaScript example scripts.' },
 );
 
 // --- spec.html / conformance.html (rendered markdown)
@@ -491,16 +524,16 @@ const specMd = readFileSync(join(root, 'spec', 'SPEC.md'), 'utf8');
 const spec = markdown(specMd);
 page(
   'spec.html',
-  'theta-script language specification',
+  'ThetaScript language specification',
   `<div class="toc">${spec.toc.map((t) => `<a href="#${t.id}">${esc(t.text)}</a>`).join('')}</div>\n` +
     spec.html,
-  { description: 'The normative theta-script language specification.' },
+  { description: 'The normative ThetaScript language specification.' },
 );
 
 const confMd = readFileSync(join(root, 'conformance', 'README.md'), 'utf8');
 const conf = markdown(confMd);
-page('conformance.html', 'theta-script conformance corpus', conf.html, {
-  description: 'How the theta-script conformance corpus keeps four runtimes bit-exact.',
+page('conformance.html', 'ThetaScript conformance corpus', conf.html, {
+  description: 'How the ThetaScript conformance corpus keeps four runtimes bit-exact.',
 });
 
 // --- crawler & AI-agent artifacts: robots.txt, sitemap.xml, llms.txt,
@@ -512,7 +545,7 @@ const PAGES = [...NAV.map(([href]) => href), 'conformance.html'];
 
 writeFileSync(
   join(out, 'robots.txt'),
-  `# theta-script docs — crawling welcome, including for AI training/answering.
+  `# ThetaScript docs — crawling welcome, including for AI training/answering.
 # Machine-readable summaries: ${SITE}llms.txt and ${SITE}llms-full.txt
 User-agent: *
 Allow: /
@@ -532,7 +565,7 @@ ${PAGES.map((p) => `  <url><loc>${SITE}${p === 'index.html' ? '' : p}</loc></url
 
 writeFileSync(
   join(out, 'llms.txt'),
-  `# theta-script
+  `# ThetaScript
 
 > ${TAGLINE}
 
@@ -564,7 +597,7 @@ const rowsMd = (rows) =>
 const stepMd = (b) => (b.p ? b.p : '```\n' + b.code.trimEnd() + '\n```');
 writeFileSync(
   join(out, 'llms-full.txt'),
-  `# theta-script — full documentation
+  `# ThetaScript — full documentation
 
 > ${TAGLINE}
 

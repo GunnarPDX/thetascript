@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>theta-script language specification</title>
-<meta name="description" content="The normative theta-script language specification.">
+<title>ThetaScript language specification</title>
+<meta name="description" content="The normative ThetaScript language specification.">
 <link rel="canonical" href="https://gunnarpdx.github.io/thetascript/spec.html">
-<meta property="og:site_name" content="theta-script">
+<meta property="og:site_name" content="ThetaScript">
 <meta property="og:type" content="article">
-<meta property="og:title" content="theta-script language specification">
-<meta property="og:description" content="The normative theta-script language specification.">
+<meta property="og:title" content="ThetaScript language specification">
+<meta property="og:description" content="The normative ThetaScript language specification.">
 <meta property="og:url" content="https://gunnarpdx.github.io/thetascript/spec.html">
 <meta property="og:image" content="https://gunnarpdx.github.io/thetascript/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="theta-script language specification">
-<meta name="twitter:description" content="The normative theta-script language specification.">
+<meta name="twitter:title" content="ThetaScript language specification">
+<meta name="twitter:description" content="The normative ThetaScript language specification.">
 <meta name="twitter:image" content="https://gunnarpdx.github.io/thetascript/og-card.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"theta-script language specification","description":"The normative theta-script language specification.","url":"https://gunnarpdx.github.io/thetascript/spec.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"theta-script","url":"https://gunnarpdx.github.io/thetascript/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ThetaScript language specification","description":"The normative ThetaScript language specification.","url":"https://gunnarpdx.github.io/thetascript/spec.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ThetaScript","url":"https://gunnarpdx.github.io/thetascript/"}}</script>
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfcfe">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0e13">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%2232%22%20y2%3D%2232%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%2322d3ee%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23a78bfa%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22translate(2.1%200)%20skewX(-7.5)%22%20fill%3D%22none%22%20stroke%3D%22url(%23g)%22%20stroke-width%3D%223.2%22%20stroke-linecap%3D%22round%22%3E%3Cellipse%20cx%3D%2215%22%20cy%3D%2216%22%20rx%3D%228.8%22%20ry%3D%2212.4%22%2F%3E%3Cpath%20d%3D%22M6.6%2016h16.8%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
@@ -62,8 +62,8 @@ nav a:hover { color: var(--fg); }
 nav a[aria-current] { color: var(--accent); font-weight: 600; }
 nav a.brand {
   display: inline-flex; align-items: center; gap: 0.5rem; margin-right: 0.6rem;
-  color: var(--fg); font: 700 1.02rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  letter-spacing: -0.01em;
+  color: var(--fg); font: 800 1.02rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  letter-spacing: -0.01em; -webkit-text-stroke: 0.02em currentColor;
 }
 nav a.brand:hover { color: var(--fg); }
 nav a.brand svg { display: block; }
@@ -103,6 +103,7 @@ th, td {
 }
 thead th { background: var(--code-bg); font-weight: 600; }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+.ascii-logo { display: block; width: 100%; max-width: 44rem; height: auto; margin: 1.4rem 0 0.6rem; }
 .lede { font-size: 1.15rem; color: var(--muted); max-width: 46rem; text-wrap: pretty; }
 .install code {
   display: inline-block; background: var(--code-bg); border: 1px solid var(--line);
@@ -138,23 +139,23 @@ footer {
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="thetaGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop class="lg1" offset="0"/><stop class="lg2" offset="1"/></linearGradient></defs></svg>
-<nav><a href="index.html" class="brand"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(2.1 0) skewX(-7.5)" fill="none" stroke="url(#thetaGrad)" stroke-width="3.2" stroke-linecap="round"><ellipse cx="15" cy="16" rx="8.8" ry="12.4"/><path d="M6.6 16h16.8"/></g></svg><span>theta-script</span></a><a href="learn.html">Learn</a><a href="reference.html">Reference</a><a href="examples.html">Examples</a><a href="spec.html" aria-current="page">Spec</a></nav>
+<nav><a href="index.html" class="brand"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(2.1 0) skewX(-7.5)" fill="none" stroke="url(#thetaGrad)" stroke-width="3.2" stroke-linecap="round"><ellipse cx="15" cy="16" rx="8.8" ry="12.4"/><path d="M6.6 16h16.8"/></g></svg><span>ThetaScript</span></a><a href="learn.html">Learn</a><a href="reference.html">Reference</a><a href="examples.html">Examples</a><a href="spec.html" aria-current="page">Spec</a></nav>
 <main>
 <div class="toc"><a href="#1-execution-model">1. Execution model</a><a href="#2-lexical-structure">2. Lexical structure</a><a href="#3-grammar">3. Grammar</a><a href="#4-types-and-values">4. Types and values</a><a href="#5-statements-scope-and-state">5. Statements, scope and state</a><a href="#6-expressions">6. Expressions</a><a href="#7-builtin-functions">7. Builtin functions</a><a href="#8-time-model-and-sources">8. Time model and sources</a><a href="#9-input-declarations">9. Input declarations</a><a href="#10-draw-functions">10. Draw functions</a><a href="#11-strategy-engine">11. Strategy engine</a><a href="#12-result-object">12. Result object</a><a href="#13-errors">13. Errors</a><a href="#14-versioning-and-change-history">14. Versioning and change history</a><a href="#appendix-a-non-normative-implementation-notes">Appendix A — non-normative implementation notes</a></div>
 <h1 id="theta-script-language-specification">theta-script language specification</h1>
 <p><strong>Version 2.4.0</strong> (<code>LANG_VERSION</code> in <code>js/src/names.js</code>; every conformance fixture records the version it was generated under. The npm package version is independent — <code>theta-script</code> 3.x on npm ships this language version compiled from the Rust core, see §14)</p>
 <p>A small language for chart studies and trade-signal scripts, executed <strong>once per bar</strong>. This document is the normative definition; the Rust core (<code>rust/theta-script/</code>) is the engine every shipped runtime wraps, the pure-JS interpreter (<code>js/src/</code>) is a retained independent implementation, and the fixtures under <a href="conformance.html"><code>conformance/</code></a> are the executable contract a port must satisfy.</p>
-<pre><code>study("Cross Strategy", overlay=true)
-fast = ema(close, 9)
-slow = ema(close, 21)
-plot(fast, color="#22d3ee")
-plot(slow, color="#f59e0b", width=2)
-var entries = 0
-if crossover(fast, slow)
-    entries := entries + 1
-strategy.buy(crossover(fast, slow), 10, trailing=2)
-strategy.sell(crossunder(fast, slow), 10)
-alertcondition(crossover(fast, slow), message="cross up")</code></pre>
+<pre><code>study(<span class="s">"Cross Strategy"</span>, overlay=<span class="k">true</span>)
+fast = ema(close, <span class="n">9</span>)
+slow = ema(close, <span class="n">21</span>)
+plot(fast, color=<span class="s">"#22d3ee"</span>)
+plot(slow, color=<span class="s">"#f59e0b"</span>, width=<span class="n">2</span>)
+<span class="k">var</span> entries = <span class="n">0</span>
+<span class="k">if</span> crossover(fast, slow)
+    entries <span class="o">:=</span> entries + <span class="n">1</span>
+strategy.buy(crossover(fast, slow), <span class="n">10</span>, trailing=<span class="n">2</span>)
+strategy.sell(crossunder(fast, slow), <span class="n">10</span>)
+alertcondition(crossover(fast, slow), message=<span class="s">"cross up"</span>)</code></pre>
 <p>Design constraints that keep the language portable and safe on untrusted input: <strong>no recursion, no unbounded loops, no I/O, no aggregate data structures</strong>. Work per run is bounded by <code>bars × statements × loop-limit</code>, and the per-bar model evaluates incrementally — a live tick appends one bar of work, which is what a streaming backend wants.</p>
 <p>Version 1 (the whole-series model) is superseded: v2 reproduces v1 scripts byte-for-byte (the v1 conformance corpus regenerated identically under this engine) with three deliberate changes, listed in §14.</p>
 <h2 id="1-execution-model">1. Execution model</h2>
@@ -168,33 +169,33 @@ alertcondition(crossover(fast, slow), message="cross up")</code></pre>
 <ul><li><strong>Comments</strong>: <code>//</code> to end of line. The pragma <code>//@version=N</code> anywhere in the source is recorded for future breaking changes (currently informative).</li><li><strong>Newlines</strong> terminate statements — except inside an unclosed <code>(</code> or <code>[</code>, where they are plain whitespace (multi-line calls).</li><li><strong>Indentation</strong> delimits blocks (<code>if</code>/<code>for</code>/multi-line function bodies): a block opens with a line indented deeper than its header and closes on the return to a shallower column (tab counts as 4). Dedents must return to an enclosing indentation level. Blank and comment-only lines are ignored entirely.</li><li><strong>Numbers</strong>: a digit run with at most one <code>.</code>; no exponent, no sign.</li><li><strong>Strings</strong>: <code>"…"</code> or <code>'…'</code>; no escapes; any character except the opening quote is literal (including newlines).</li><li><strong>Identifiers</strong>: <code>[A-Za-z_][A-Za-z0-9_.]*</code> — dots are part of the name (<code>input.int</code>, <code>strategy.buy</code>, <code>barstate.islast</code>).</li><li><strong>Reserved words</strong>: <code>var if else for while switch break continue</code> may not be used as identifiers; <code>to by else</code> are recognized contextually in their constructs. <code>and or not</code> are operators; <code>true false</code> are the numbers 1/0; <code>na</code> is the NaN literal unless immediately followed by <code>(</code> (the is-na builtin).</li><li><strong>Operators</strong>: <code>== != &lt;= &gt;= := =&gt;</code> (two-char, matched first), then <code>+ - * / % &lt; &gt; ( ) [ ] , = ? :</code>.</li></ul>
 <h2 id="3-grammar">3. Grammar</h2>
 <pre><code>program    = { NL } , { statement } ;
-statement  = "var" IDENT "=" expr
-           | IDENT ":=" expr
-           | IDENT "=" expr
-           | IDENT "(" [ IDENT { "," IDENT } ] ")" "=&gt;" fnbody   (* top level only *)
-           | "if" expr block { "else" "if" expr block } [ "else" block ]
-           | "for" IDENT "=" expr "to" expr [ "by" expr ] block
-           | "while" expr block
-           | "switch" expr NL INDENT { arm } DEDENT
-           | "break" | "continue"
+statement  = <span class="s">"var"</span> IDENT <span class="s">"="</span> expr
+           | IDENT <span class="s">":="</span> expr
+           | IDENT <span class="s">"="</span> expr
+           | IDENT <span class="s">"("</span> [ IDENT { <span class="s">","</span> IDENT } ] <span class="s">")"</span> <span class="s">"=&gt;"</span> fnbody   (* top level only *)
+           | <span class="s">"if"</span> expr block { <span class="s">"else"</span> <span class="s">"if"</span> expr block } [ <span class="s">"else"</span> block ]
+           | <span class="s">"for"</span> IDENT <span class="s">"="</span> expr <span class="s">"to"</span> expr [ <span class="s">"by"</span> expr ] block
+           | <span class="s">"while"</span> expr block
+           | <span class="s">"switch"</span> expr NL INDENT { arm } DEDENT
+           | <span class="s">"break"</span> | <span class="s">"continue"</span>
            | expr ;
-arm        = [ expr ] "=&gt;" statement NL ;      (* single-line arm; bare "=&gt;" is the default *)
+arm        = [ expr ] <span class="s">"=&gt;"</span> statement NL ;      (* single-line arm; bare <span class="s">"=&gt;"</span> is the default *)
 fnbody     = expr | block ;                    (* block's last statement must be an expr *)
 block      = NL INDENT { statement } DEDENT ;
 
 expr       = ternary ;
-ternary    = or_expr [ "?" expr ":" expr ] ;   (* right-associative *)
-or_expr    = and_expr { "or" and_expr } ;
-and_expr   = eq_expr { "and" eq_expr } ;
-eq_expr    = rel_expr { ( "==" | "!=" ) rel_expr } ;
-rel_expr   = add_expr { ( "&lt;" | "&lt;=" | "&gt;" | "&gt;=" ) add_expr } ;
-add_expr   = mul_expr { ( "+" | "-" ) mul_expr } ;
-mul_expr   = unary { ( "*" | "/" | "%" ) unary } ;
-unary      = "-" unary | "not" unary | postfix ;
-postfix    = primary { "[" expr "]" } ;
-primary    = NUMBER | STRING | "(" expr ")"
-           | IDENT "(" [ arg { "," arg } ] ")" | IDENT ;
-arg        = IDENT "=" expr | expr ;</code></pre>
+ternary    = or_expr [ <span class="s">"?"</span> expr <span class="s">":"</span> expr ] ;   (* right-associative *)
+or_expr    = and_expr { <span class="s">"or"</span> and_expr } ;
+and_expr   = eq_expr { <span class="s">"and"</span> eq_expr } ;
+eq_expr    = rel_expr { ( <span class="s">"=="</span> | <span class="s">"!="</span> ) rel_expr } ;
+rel_expr   = add_expr { ( <span class="s">"&lt;"</span> | <span class="s">"&lt;="</span> | <span class="s">"&gt;"</span> | <span class="s">"&gt;="</span> ) add_expr } ;
+add_expr   = mul_expr { ( <span class="s">"+"</span> | <span class="s">"-"</span> ) mul_expr } ;
+mul_expr   = unary { ( <span class="s">"*"</span> | <span class="s">"/"</span> | <span class="s">"%"</span> ) unary } ;
+unary      = <span class="s">"-"</span> unary | <span class="s">"not"</span> unary | postfix ;
+postfix    = primary { <span class="s">"["</span> expr <span class="s">"]"</span> } ;
+primary    = NUMBER | STRING | <span class="s">"("</span> expr <span class="s">")"</span>
+           | IDENT <span class="s">"("</span> [ arg { <span class="s">","</span> arg } ] <span class="s">")"</span> | IDENT ;
+arg        = IDENT <span class="s">"="</span> expr | expr ;</code></pre>
 <p>Statements on one line need a newline terminator; statements ending in a block are self-terminating. Binary operators are left-associative; the ternary condition parses at <code>or_expr</code> level, branches are full <code>expr</code>.</p>
 <p><strong>Validation</strong> (parse-time errors): declaration calls (§10's draw functions, <code>input.*</code>, <code>study</code>, <code>strategy.buy/sell/config</code>, <code>alertcondition</code>, <code>line.new</code>/<code>label.new</code>/<code>box.new</code>, <code>security</code>) must appear in top-level statements — never inside <code>if</code>/<code>for</code>/<code>while</code>/<code>switch</code> blocks or function bodies, and never inside a <code>while</code> condition or a <code>switch</code> arm test (those expressions run repeatedly or conditionally, which would break every once-per-bar declaration invariant; <code>if</code> conditions, <code>for</code> bounds and <code>switch</code> subjects evaluate exactly once per bar and are fine). <code>break</code>/<code>continue</code> must appear inside a loop body. <code>security</code>'s argument expressions may not contain any of those top-level-only calls (so <code>security</code> never nests). Function definitions are top-level only, may not be recursive (directly or mutually), and take positional arguments only; parameter lists are comma-separated with no trailing comma and no duplicate names. Duplicate keyword arguments in any call are an error. Expression nesting is capped (reference: 500 levels) so parser and evaluator recursion stay bounded on adversarial input.</p>
 <h2 id="4-types-and-values">4. Types and values</h2>
@@ -259,12 +260,12 @@ arg        = IDENT "=" expr | expr ;</code></pre>
   panel:  [{ title, value, color, precision }],
   barColors: [ (string|null)[] ],
   bgColors:  [{ colors, opacity }],
-  inputs: [ §9 records ],
+  inputs: [ §<span class="n">9</span> records ],
   alerts: [{ title, message, values, messages? }],
   lines:  [{ x1, y1, x2, y2, color, width, lineStyle }],
   labels: [{ x, y, text, color, textColor, style, size }],
   boxes:  [{ x1, y1, x2, y2, color, bgColor, width }],
-  strategy: §11 object | null,
+  strategy: §<span class="n">11</span> object | null,
   error: string | null
 }</code></pre>
 <p>All per-bar arrays have length <code>n</code> (<code>lines</code>/<code>labels</code>/<code>boxes</code> are object pools, §10). JSON wire encoding: NaN → <code>null</code>, ±Infinity → <code>"Infinity"</code>/<code>"-Infinity"</code>, −0 → <code>0</code>; absent optional record keys are omitted (never emitted as null) (see conformance/README.md).</p>

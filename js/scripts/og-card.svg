@@ -18,7 +18,7 @@
       <path d="M6.6 16h16.8"/>
     </g>
   </g>
-  <text x="420" y="318" font-family="Menlo, 'SF Mono', Consolas, monospace" font-size="86" font-weight="700" fill="#e7edf3" letter-spacing="-2">theta-script</text>
+  <text x="420" y="318" font-family="Menlo, 'SF Mono', Consolas, monospace" font-size="86" font-weight="700" fill="#e7edf3" letter-spacing="-2">ThetaScript</text>
   <text x="424" y="392" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="31" fill="#93a0ab">A per-bar scripting language for chart studies</text>
   <text x="424" y="436" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="31" fill="#93a0ab">and trade signals</text>
   <text x="108" y="540" font-family="Menlo, 'SF Mono', Consolas, monospace" font-size="24" fill="#5b6772">Rust core · WebAssembly · Python · Elixir · bit-exact conformance · MIT</text>

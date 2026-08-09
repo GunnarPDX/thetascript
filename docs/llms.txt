@@ -1,4 +1,4 @@
-# theta-script
+# ThetaScript
 
 > A small scripting language for chart studies and trade-signal scripts, executed once per bar — one Rust engine compiled to WebAssembly, native, Python and Elixir, kept bit-exact by a conformance corpus.
 

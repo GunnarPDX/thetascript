@@ -1,4 +1,4 @@
-# theta-script docs — crawling welcome, including for AI training/answering.
+# ThetaScript docs — crawling welcome, including for AI training/answering.
 # Machine-readable summaries: https://gunnarpdx.github.io/thetascript/llms.txt and https://gunnarpdx.github.io/thetascript/llms-full.txt
 User-agent: *
 Allow: /
