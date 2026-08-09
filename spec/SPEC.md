@@ -1,12 +1,15 @@
 # theta-script language specification
 
-**Version 2.4.0** (`LANG_VERSION` in `interpreter.js`; every conformance
-fixture records the version it was generated under)
+**Version 2.4.0** (`LANG_VERSION` in `js/src/names.js`; every conformance
+fixture records the version it was generated under. The npm package
+version is independent — `theta-script` 3.x on npm ships this language
+version compiled from the Rust core, see §14)
 
 A small language for chart studies and trade-signal
 scripts, executed **once per bar**. This document is the normative
-definition; the JavaScript interpreter in this directory is the reference
-implementation, and the fixtures under
+definition; the Rust core (`rust/theta-script/`) is the engine every
+shipped runtime wraps, the pure-JS interpreter (`js/src/`) is a retained
+independent implementation, and the fixtures under
 [`conformance/`](../conformance/README.md) are the executable contract a port
 must satisfy.
 
@@ -650,6 +653,21 @@ declaring `var` over an existing plain variable or built-in; the
 draws-nothing rule.
 
 ## 14. Versioning and change history
+
+**npm 3.0.0** (runtime/packaging, 2026-08 — the language is unchanged at
+**2.4.0** and no fixtures change; this entry decouples the npm package
+version from `LANG_VERSION`):
+
+- The `theta-script` npm package now ships the **Rust core compiled to
+  WebAssembly** — the same engine behind the Python and Elixir bindings —
+  instead of the pure-JS interpreter. Hosts call `await init()` once at
+  startup; `runScript` is synchronous after that.
+- JS package results are now in the JSON wire encoding of §12
+  (`NaN → null`, `±Infinity → "±Infinity"`, `−0 → 0`), identical across
+  all runtimes. v2 returned raw `NaN` values in series.
+- The pure-JS interpreter remains importable as `theta-script/js` and
+  stays in-tree as the independent conformance oracle and fixture
+  generator.
 
 **2.4.0** (corrective — behavior deltas are deliberate bug fixes; all
 previously *pinned* outputs regenerate identically except where noted):
